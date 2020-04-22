@@ -1,3 +1,17 @@
+from typing import List
+
+from algorithms import SharedFunctions
+from algorithms.AlgorithmInterfaces import ImageProcessorInterface, NoiseClassifierInterface
+from scipy.stats import skew, kurtosis
+from sklearn.svm import SVC
+from skimage.util import pad
+from config import GlobalConfig
+from example import GenerateExamples
+from data import ImageUtils, DatasetManager
+import numpy as np
+import os
+
+
 class NoiseClassifier(ImageProcessorInterface):
     """
     Implementation of the Noise Classifier used in the BM3DELBP and SARBM3DELBP paper.
@@ -6,8 +20,6 @@ class NoiseClassifier(ImageProcessorInterface):
     1 Take a noisy image with unknown noise type
     2 Apply the 3 noise filter types, BM3D filter, Homomorphic filter, Median filter to get 3 estimates
         for the non-noisy image
-        N.B. Wiener removes Gaussian/Non-Gaussian white noise.
-             Median removes salt-and-pepper. Homomorphic removes speckle.
     3 Subtract the filtered images from the noisy image to get 3 noise estimates.
     4 Calculate the kurtosis (Kurt) and skewness (Skew) on these noise estimates.
     5 Use a minimum distance pattern noise_classifier to measure the similarity of Kurt and Skew to these measured on noise
@@ -23,7 +35,7 @@ class NoiseClassifier(ImageProcessorInterface):
         return "scale-{}".format(int(GlobalConfig.get('scale') * 100))
 
     def describe(self, image, test_image: bool):
-        if type(image) == DatasetManager.Image or type(image) == BM3DELBPImage:
+        if isinstance(image, DatasetManager.Image):
             if test_image:
                 image_data = image.test_data
             else:
@@ -50,7 +62,7 @@ class NoiseClassifier(ImageProcessorInterface):
         median_noise = image_data - image_median_filtered
 
         if self.save_img:
-            if isinstance(image, DatasetManager.Image) or isinstance(image, BM3DELBPImage):
+            if isinstance(image, DatasetManager.Image):
                 # Todo: Uncomment
                 # GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(image_bm3d_filtered),
                 #                              os.path.join('BM3DELBP', 'NoiseClassifier', 'Filtered Images'),
@@ -116,7 +128,7 @@ class NoiseTypePredictor(NoiseClassifierInterface):
         * This can be validated against the BM3DELBP test set.
     """
 
-    def __init__(self, dataset: List[BM3DELBPImage], cross_validator):
+    def __init__(self, dataset: List[DatasetManager.Image], cross_validator):
         super().__init__(dataset, cross_validator)
         self.classifier = None
 

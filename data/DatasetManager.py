@@ -123,15 +123,15 @@ class KylbergTextures:
         # Scale test image
         if GlobalConfig.get('test_scale') is not None:
             test_data = cv2.resize(cv2.imread(path, cv2.IMREAD_GRAYSCALE), (0, 0),
-                                fx=GlobalConfig.get('test_scale'),
-                                fy=GlobalConfig.get('test_scale'))
+                                   fx=GlobalConfig.get('test_scale'),
+                                   fy=GlobalConfig.get('test_scale'))
         else:
             test_data = cv2.resize(cv2.imread(path, cv2.IMREAD_GRAYSCALE), (0, 0),
                                    fx=GlobalConfig.get('scale'),
                                    fy=GlobalConfig.get('scale'))
 
-        # Convert image from uint8 to float32
         algo = GlobalConfig.get('algorithm')
+        # Convert image from uint8 to float32
         if algo == 'MRELBP' or algo == 'BM3DELBP' or algo == 'NoiseClassifier':
             #  Image gets scaled to 0 mean if using MRELBP, BM3DELBP or BM3DELBP's NoiseClassifier
             train_data = ImageUtils.scale_uint8_image_float32(train_data)
@@ -145,11 +145,11 @@ class KylbergTextures:
         if GlobalConfig.get('noise') is None:
             pass
         elif GlobalConfig.get('noise') == 'gaussian':
-            test_data = ImageUtils.add_gaussian_noise(test_data, GlobalConfig.get('noise_val'))
+            test_data = ImageUtils.add_gaussian_noise_skimage(test_data, GlobalConfig.get('noise_val'))
         elif GlobalConfig.get('noise') == 'speckle':
-            test_data = ImageUtils.add_speckle_noise(test_data, GlobalConfig.get('noise_val'))
+            test_data = ImageUtils.add_speckle_noise_skimage(test_data, GlobalConfig.get('noise_val'))
         elif GlobalConfig.get('noise') == 'salt-pepper':
-            test_data = ImageUtils.add_salt_pepper_noise(test_data, GlobalConfig.get('noise_val'))
+            test_data = ImageUtils.add_salt_pepper_noise_skimage(test_data, GlobalConfig.get('noise_val'))
         else:
             raise ValueError('Invalid image_scaled noise type defined')
 

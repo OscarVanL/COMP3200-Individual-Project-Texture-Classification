@@ -1,16 +1,12 @@
 from typing import List, Tuple
 
 from algorithms import SharedFunctions, SARBM3D, MRELBP
-from algorithms.AlgorithmInterfaces import ImageProcessorInterface, ImageClassifierInterface, NoiseClassifierInterface
+from algorithms.AlgorithmInterfaces import ImageProcessorInterface, ImageClassifierInterface
+from algorithms.NoiseClassifier import NoiseTypePredictor
 from config import GlobalConfig
-from scipy.stats import skew, kurtosis
 from skimage.util import pad
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
 import numpy as np
-import os
 from data import ImageUtils, DatasetManager
-from example import GenerateExamples
 
 
 class BM3DELBP(ImageProcessorInterface):
@@ -47,12 +43,11 @@ class BM3DELBP(ImageProcessorInterface):
         :param test_image: Whether this is a test image with a noise type applied
         :return:
         """
-        return self.elbp.calculate_relbp(image)
 
         if self.save_img:
             # Todo: Implement example image generation for report
             pass
-        pass
+        return self.elbp.calculate_relbp(image)
 
 
 class BM3DELBPImage(DatasetManager.Image):
@@ -63,7 +58,6 @@ class BM3DELBPImage(DatasetManager.Image):
         Doing this for each fold would be enormously slow, so it allows this to be reused.
         """
         super().__init__(image.data, image.name, image.label)
-        self.noise_classifier = NoiseClassifier()
 
         self.gauss_10_data = None
         self.gauss_10_noise_featurevector = None  # Feaurevector for the noise identifier
@@ -85,21 +79,21 @@ class BM3DELBPImage(DatasetManager.Image):
         self.salt_pepper_002_prediction = None
         self.salt_pepper_002_bm3d_featurevector = None
 
-    def generate_gauss_10(self):
-        self.gauss_10_data = ImageUtils.add_gaussian_noise(self.data, 10)
-        self.gauss_10_noise_featurevector = self.noise_classifier.describe(self.gauss_10_data, test_image=True)
+    def generate_gauss_10(self, noise_classifier):
+        self.gauss_10_data = ImageUtils.add_gaussian_noise_skimage(self.data, 10)
+        self.gauss_10_noise_featurevector = noise_classifier.describe(self.gauss_10_data, test_image=True)
 
-    def generate_gauss_25(self):
-        self.gauss_25_data = ImageUtils.add_gaussian_noise(self.data, 25)
-        self.gauss_25_noise_featurevector = self.noise_classifier.describe(self.gauss_25_data, test_image=True)
+    def generate_gauss_25(self, noise_classifier):
+        self.gauss_25_data = ImageUtils.add_gaussian_noise_skimage(self.data, 25)
+        self.gauss_25_noise_featurevector = noise_classifier.describe(self.gauss_25_data, test_image=True)
 
-    def generate_speckle_002(self):
-        self.speckle_002_data = ImageUtils.add_speckle_noise(self.data, 0.02)
-        self.speckle_002_noise_featurevector = self.noise_classifier.describe(self.speckle_002_data, test_image=True)
+    def generate_speckle_002(self, noise_classifier):
+        self.speckle_002_data = ImageUtils.add_speckle_noise_skimage(self.data, 0.02)
+        self.speckle_002_noise_featurevector = noise_classifier.describe(self.speckle_002_data, test_image=True)
 
-    def generate_salt_pepper_002(self):
-        self.salt_pepper_002_data = ImageUtils.add_salt_pepper_noise(self.data, 0.02)
-        self.salt_pepper_002_noise_featurevector = self.noise_classifier.describe(self.salt_pepper_002_data,
+    def generate_salt_pepper_002(self, noise_classifier):
+        self.salt_pepper_002_data = ImageUtils.add_salt_pepper_noise_skimage(self.data, 0.02)
+        self.salt_pepper_002_noise_featurevector = noise_classifier.describe(self.salt_pepper_002_data,
                                                                                   test_image=True)
 
 
@@ -170,8 +164,6 @@ class BM3DELBPPredictor(ImageClassifierInterface):
 
         return test_y_all, pred_y_all
 
-
-
     def apply_filter(self, image_data, image_name, noise_prediction):
         if noise_prediction == 'gaussian':
             # Apply BM3D filter
@@ -194,4 +186,3 @@ class BM3DELBPPredictor(ImageClassifierInterface):
 
     def classify(self, X) -> List[str]:
         pass
-

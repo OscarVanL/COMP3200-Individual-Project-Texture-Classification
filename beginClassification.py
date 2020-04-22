@@ -6,7 +6,7 @@ import numpy as np
 import ClassificationUtils
 from config import GlobalConfig
 from data import DatasetManager
-from algorithms import RLBP, MRELBP, BM3DELBP
+from algorithms import RLBP, MRELBP, BM3DELBP, NoiseClassifier
 from algorithms.AlgorithmInterfaces import ImageProcessorInterface
 from example import GenerateExamples
 from multiprocessing import Pool
@@ -18,14 +18,14 @@ This is the general launcher script for all IP functionality.
 It parses the provided args, loads the relevant dataset, applies filters, applies the algorithm.
 
 Args:
--a or --algorithm : Configure the Algorithm to use.
+-a or --algorithm : Configure the algorithm to use.
 -d or --dataset : Configure the Dataset to use
 -t or --train-ratio : Ratio of the dataset to use for training. Eg: 0.8
--s or --scale : Amount to rescale the training images. Eg: 0.5 to halve the image_scaled resolution
--S or --test-scale : Amount to rescale the testing images. This is used for the scale invariance test
--r or --rotations : Whether to rotate ecah image_scaled in the dataset 12 times
--n or --noise : Which type of noise to apply ('gaussian', 'speckle', 'salt-pepper')
--i or --intensity : How much noise to apply (Sigma / Variance / Ratio)
+-s or --scale : Amount to rescale the training textures. Eg: 0.5 to halve the resolution
+-S or --test-scale : Amount to rescale the test textures. This is used for the scale invariance test
+-r or --rotations : Whether to use rotated textures for the test images.
+-n or --noise : Which type of noise to apply to test textures ('gaussian', 'speckle', 'salt-pepper')
+-i or --intensity : How much noise to apply to test textures (Sigma / Variance / Ratio)
 -m or --multiprocess : Whether to use multi process featurevector generation
 -e or --example : Generate example images used in dissertation report
 --debug : Whether to run in debug mode (uses a reduced dataset to speed up execution, prints more stuff)
@@ -110,7 +110,7 @@ def main():
     # Load configured Dataset
     if GlobalConfig.get('dataset') == 'kylberg':
         if GlobalConfig.get('debug'):
-            # To save time in debug mode, only load one class and load it at a small resolution.
+            # To save time in debug mode, only load one class and load a smaller proportion of it (25% of samples)
             kylberg = DatasetManager.KylbergTextures(num_classes=2, data_ratio=0.25)
         else:
             kylberg = DatasetManager.KylbergTextures(num_classes=28, data_ratio=1.0)
@@ -142,13 +142,10 @@ def main():
         algorithm = MRELBP.MedianRobustExtendedLBP(r1=[2, 4, 6, 8], p=8, w_center=3, w_r1=[3, 5, 7, 9])
     elif GlobalConfig.get('algorithm') == 'BM3DELBP':
         print("Applying BM3DELBP algorithm")
-        # todo: Train noise-type detection on training set and predict Test noise-types
-        # todo: Apply de-noising techniques according to predicted noise types
-        # todo: Then generate featurevector.
         algorithm = BM3DELBP.BM3DELBP()
     elif GlobalConfig.get('algorithm') == 'NoiseClassifier':
-        # Noise Classifier is used in BM3DELBP algorithm usually, and does not require any initialisation
-        algorithm = BM3DELBP.NoiseClassifier()
+        # Noise Classifier is used in BM3DELBP algorithm usually, this allows for benchmarking of the classifier alone
+        algorithm = NoiseClassifier.NoiseClassifier()
         pass
     else:
         raise ValueError('Invalid algorithm choice')
@@ -315,6 +312,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str) -> BM3DELBP.BM3DEL
     :return: new_image : BM3DELBP.BM3DELBPImage for that image
     """
     new_image = BM3DELBP.BM3DELBPImage(image)
+    noise_classifier = NoiseClassifier.NoiseClassifier()
 
     # Load / generate Gussian sigma 10 noise featurevector
     out_cat = os.path.join(out_dir, 'gaussian-10', image.label)
@@ -330,7 +328,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str) -> BM3DELBP.BM3DEL
     except IOError:
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
-        new_image.generate_gauss_10()
+        new_image.generate_gauss_10(noise_classifier)
         # Make output folder if it doesn't exist
         if not (os.path.exists(out_cat)):
             os.makedirs(out_cat)
@@ -351,7 +349,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str) -> BM3DELBP.BM3DEL
     except IOError:
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
-        new_image.generate_gauss_25()
+        new_image.generate_gauss_25(noise_classifier)
         # Make output folder if it doesn't exist
         if not (os.path.exists(out_cat)):
             os.makedirs(out_cat)
@@ -372,7 +370,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str) -> BM3DELBP.BM3DEL
     except IOError:
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
-        new_image.generate_speckle_002()
+        new_image.generate_speckle_002(noise_classifier)
         # Make output folder if it doesn't exist
         if not (os.path.exists(out_cat)):
             os.makedirs(out_cat)
@@ -393,7 +391,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str) -> BM3DELBP.BM3DEL
     except IOError:
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
-        new_image.generate_salt_pepper_002()
+        new_image.generate_salt_pepper_002(noise_classifier)
         # Make output folder if it doesn't exist
         if not (os.path.exists(out_cat)):
             os.makedirs(out_cat)

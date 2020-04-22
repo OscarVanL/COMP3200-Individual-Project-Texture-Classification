@@ -45,6 +45,7 @@ class ImageClassifierInterface:
         self.dataset = dataset
         self.dataset_y = [image.label for image in dataset]
         self.cross_validator = cross_validator
+        self.classifier = None
 
     @abstractmethod
     def begin_cross_validation(self) -> Tuple[List[np.array], List[str]]:

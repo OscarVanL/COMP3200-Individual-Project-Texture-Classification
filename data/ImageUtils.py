@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import numba as nb
+from skimage.util import random_noise
 
 
 def convert_float32_image_uint8(image: np.ndarray):
@@ -39,7 +40,7 @@ def scale_uint8_image_float32(image):
 
 
 @nb.njit('float32[:,:](float32[:,:], float32)')
-def add_gaussian_noise(image, sigma):
+def add_gaussian_noise_numba(image, sigma):
     """
     Credit: https://stackoverflow.com/a/30609854/6008271
     Uses 0-mean for gaussian noise.
@@ -53,9 +54,13 @@ def add_gaussian_noise(image, sigma):
     noisy = image + gauss
     return noisy.astype(np.float32)
 
+def add_gaussian_noise_skimage(image, sigma):
+    # Note: variance = (standard deviation) ** 2
+    return random_noise(image, mode='gaussian', clip=True, var=sigma/255)
+
 
 @nb.njit('float32[:,:](float32[:,:], float32)')
-def add_salt_pepper_noise(image, amount):
+def add_salt_pepper_noise_numba(image, amount):
     """
     Adapted from: https://stackoverflow.com/a/30609854/6008271
     Credit to @stuartarchibald for helping adapt this from using fancy indexing.
@@ -85,9 +90,12 @@ def add_salt_pepper_noise(image, amount):
 
     return noisy
 
+def add_salt_pepper_noise_skimage(image, amount):
+    return random_noise(image, mode='s&p', amount=amount)
+
 
 @nb.njit('float32[:,:](float32[:,:], float32)')
-def add_speckle_noise(image, var):
+def add_speckle_noise_numba(image, var):
     """
     Add speckle noise to an image_scaled
     :param image: Image to add noise to
@@ -98,3 +106,6 @@ def add_speckle_noise(image, var):
     gauss = np.random.randn(row, col).astype(np.float32)
     gauss = gauss.reshape(row, col)
     return image + (image * gauss * var)
+
+def add_speckle_noise_skimage(image, var):
+    return random_noise(image, mode='speckle', clip=True, var=var)
