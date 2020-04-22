@@ -59,7 +59,7 @@ def pretty_print_conf_matrix(y_true, y_pred,
                  fontsize=12)
 
     #fig.tight_layout()
-    plt.show()
+    plt.show(block=False)
 
     if out_dir is not None:
         out_file = os.path.join(out_dir, 'Confusion Matrix{}.png'.format(describe_test_setup()))
