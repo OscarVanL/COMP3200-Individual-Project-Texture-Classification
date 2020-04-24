@@ -271,9 +271,9 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             # Train on this fold
             train = []
             if GlobalConfig.get('multiprocess'):
-                with Pool(GlobalConfig.get('cpu_count')) as pool:
+                with Pool(GlobalConfig.get('cpu_count')) as pool_train:
                     # Generate featurevectors
-                    for image in tqdm.tqdm(pool.istarmap(self.BM3DELBP.describe_filter,
+                    for image in tqdm.tqdm(pool_train.istarmap(self.BM3DELBP.describe_filter,
                                                          zip([self.dataset[index] for index in train_index], repeat(False), repeat(train_out_dir), repeat(test_out_dir))),
                                            total=len(train_index), desc='BM3DELBP Train Featurevectors'):
                         train.append(image)
@@ -300,8 +300,8 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             # Apply BM3DELBP filter & generate BM3DELBP descriptor
             if GlobalConfig.get('multiprocess'):
                 # Generate test_featurevectors using multiprocessing
-                with Pool(GlobalConfig.get('cpu_count')) as pool:
-                    for image in tqdm.tqdm(pool.istarmap(self.BM3DELBP.describe_filter,
+                with Pool(GlobalConfig.get('cpu_count')) as pool_test:
+                    for image in tqdm.tqdm(pool_test.istarmap(self.BM3DELBP.describe_filter,
                                                          zip([self.dataset[index] for index in test_index], repeat(True), repeat(train_out_dir), repeat(test_out_dir))),
                                             total=len(test_index), desc='BM3DELBP Test Featurevectors'):
                         test_X.append(image.test_featurevector)
