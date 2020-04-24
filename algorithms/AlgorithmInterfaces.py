@@ -130,13 +130,13 @@ class NoiseClassifierInterface:
         self.dataset_X = []
         self.dataset_y = []
         for image in dataset:
-            self.dataset_X.append(image.gauss_10_featurevector)
+            self.dataset_X.append(image.gauss_10_noise_featurevector)
             self.dataset_y.append('gaussian')
-            self.dataset_X.append(image.gauss_25_featurevector)
+            self.dataset_X.append(image.gauss_25_noise_featurevector)
             self.dataset_y.append('gaussian')
-            self.dataset_X.append(image.speckle_002_featurevector)
+            self.dataset_X.append(image.speckle_002_noise_featurevector)
             self.dataset_y.append('speckle')
-            self.dataset_X.append(image.salt_pepper_002_featurevector)
+            self.dataset_X.append(image.salt_pepper_002_noise_featurevector)
             self.dataset_y.append('salt-pepper')
 
     @abstractmethod

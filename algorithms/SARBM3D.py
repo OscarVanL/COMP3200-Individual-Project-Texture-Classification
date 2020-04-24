@@ -14,17 +14,7 @@ The SAR-BM3D executables can be downloaded here: http://www.grip.unina.it/web-do
 
 class SARBM3DFilter():
     def __init__(self):
-        # Initialise MATLAB engine
-        self.eng = matlab.engine.start_matlab()
-        # Check of SARBM3D_v10_win64 executables folder exists
-        self.SAMRBM3D_DIR = os.path.join(os.getcwd(), 'algorithms', 'SARBM3D_v10_win64')
-        if not os.path.exists(self.SAMRBM3D_DIR):
-            raise FileNotFoundError('SARBM3D_v10_win64 executables missing. Place them in: ' + self.SAMRBM3D_DIR)
-        # Switch to directory
-        self.eng.cd(self.SAMRBM3D_DIR, nargout=0)
-        print("MATLAB Working DIR:", self.eng.pwd())
-        if self.eng.isprime(37):
-            print("MATLAB connection successful")
+        pass
 
     def sar_bm3d_filter(self, image, image_name, L=50):
         """
@@ -70,6 +60,19 @@ class SARBM3DFilter():
         # Delete the .mat file
         os.remove(out_file_python)
         return FILTERED_IMAGE
+
+    def connect_matlab(self):
+        # Initialise MATLAB engine
+        self.eng = matlab.engine.start_matlab()
+        # Check of SARBM3D_v10_win64 executables folder exists
+        self.SAMRBM3D_DIR = os.path.join(os.getcwd(), 'algorithms', 'SARBM3D_v10_win64')
+        if not os.path.exists(self.SAMRBM3D_DIR):
+            raise FileNotFoundError('SARBM3D_v10_win64 executables missing. Place them in: ' + self.SAMRBM3D_DIR)
+        # Switch to directory
+        self.eng.cd(self.SAMRBM3D_DIR, nargout=0)
+        print("MATLAB Working DIR:", self.eng.pwd())
+        if self.eng.isprime(37):
+            print("MATLAB connection successful")
 
     def disconnect_matlab(self):
         self.eng.quit()

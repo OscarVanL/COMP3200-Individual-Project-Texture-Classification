@@ -6,6 +6,8 @@ from algorithms.NoiseClassifier import NoiseTypePredictor
 from config import GlobalConfig
 from sklearn.svm import SVC
 from skimage.util import pad
+from multiprocessing import Pool
+from itertools import repeat
 import numpy as np
 from data import ImageUtils, DatasetManager
 import os.path
@@ -20,8 +22,6 @@ class BM3DELBP(ImageProcessorInterface):
 
     def __init__(self, save_img=False):
         self.elbp = MRELBP.MedianRobustExtendedLBP()
-        # Establish connection to MATLAB Engine for SAR-BM3D filter
-        self.sar_bm3d = SARBM3D.SARBM3DFilter()
         super().__init__(save_img)
 
     def get_outdir(self, noisy_image: bool, scaled_image: bool):
@@ -37,23 +37,25 @@ class BM3DELBP(ImageProcessorInterface):
         else:
             image_scale = int(GlobalConfig.get('scale') * 100)
 
-        return "scale-{}_noise={}_noiseval-{}".format(image_scale, noise_type, noise_val)
+        return "scale-{}_noise-{}_noiseval-{}".format(image_scale, noise_type, noise_val)
 
-    def describe_filter(self, image, test_image: bool):
+    def describe_filter(self, image, test_image: bool, train_out_dir, test_out_dir):
         """
         Perform the filtering + description stage for BM3DELBP algorithm.
         Load/Save featurevector to file to save time on future runs
         :param image: Image data to apply BM3DELBP filter + description upon
         :param test_image: Whether the featurevector is being generated for the test image
-        :return: Featurevector
+        :param dataset: Name of dataset folder
+        :return: Image containing featurevector
         """
+        if image is None:
+            raise ValueError("Image passed into describe_filter is NoneType")
 
         if test_image:
-            noisy_image = GlobalConfig.get('noise') is not None
-            scaled_image = GlobalConfig.get('test_scale') is not None
-            out_dir = os.path.join(os.getcwd(), 'out', 'BM3DELBP', GlobalConfig.get('dataset'),
-                                   self.get_outdir(noisy_image=noisy_image, scaled_image=scaled_image))
-            out_file = os.path.join(out_dir, '{}.npy'.format(image.name))
+            # When storing test image generated featurevectors, store the featurevectors according to their noise type
+            # prediction.
+            test_out_dir = os.path.join(test_out_dir, self.get_filter_name(image.noise_prediction))
+            out_file = os.path.join(test_out_dir, '{}.npy'.format(image.name))
 
             # Read/generate featurevector for test image
             if GlobalConfig.get('debug'):
@@ -72,15 +74,13 @@ class BM3DELBP(ImageProcessorInterface):
                 featurevector = self.describe(test_data_filtered, test_image=True)
 
                 # Make output folder if it doesn't exist
-                if not (os.path.exists(out_dir)):
-                    os.makedirs(out_dir)
+                if not (os.path.exists(test_out_dir)):
+                    os.makedirs(test_out_dir)
 
                 np.save(out_file, featurevector)
         else:
             # Non-noisy original image for training
-            out_dir = os.path.join(os.getcwd(), 'out', 'BM3DELBP', GlobalConfig.get('dataset'),
-                                   self.get_outdir(noisy_image=False, scaled_image=False))
-            out_file = os.path.join(out_dir, '{}.npy'.format(image.name))
+            out_file = os.path.join(train_out_dir, '{}.npy'.format(image.name))
             # Read/generate featurevector for image
             if GlobalConfig.get('debug'):
                 print("Read/Write BM3DELBP featurevector file to", out_file)
@@ -95,12 +95,20 @@ class BM3DELBP(ImageProcessorInterface):
                 featurevector = self.describe(image.data, test_image=False)
 
                 # Make output folder if it doesn't exist
-                if not (os.path.exists(out_dir)):
-                    os.makedirs(out_dir)
+                if not (os.path.exists(train_out_dir)):
+                    os.makedirs(train_out_dir)
 
                 np.save(out_file, featurevector)
 
-        return featurevector
+        if test_image:
+            image.test_featurevector = featurevector
+        else:
+            image.featurevector = featurevector
+
+        if image is None:
+            raise ValueError("Final Image in describe_filter is NoneType")
+
+        return image
 
     def describe(self, image, test_image: bool):
         """
@@ -114,15 +122,35 @@ class BM3DELBP(ImageProcessorInterface):
         if self.save_img:
             # Todo: Implement example image generation for report
             pass
-        return self.elbp.calculate_relbp(image)
+
+        # Zero-pad image_scaled with padding border. Required for RELBP descriptor
+        image_padded = pad(array=image, pad_width=self.elbp.padding, mode='constant', constant_values=0)
+        image_padded = image_padded.astype(np.float32)
+        return self.elbp.calculate_relbp(image_padded)
+
+    def get_filter_name(self, noise_prediction):
+        if noise_prediction == 'gaussian':
+            return 'BM3D'
+        elif noise_prediction == 'speckle':
+            return 'SARBM3D'
+        elif noise_prediction == 'salt-peper':
+            return 'median'
+        else:
+            raise ValueError('Noise prediction does not match expected values')
 
     def apply_filter(self, image_data, image_name, noise_prediction):
         if noise_prediction == 'gaussian':
             # Apply BM3D filter
             image_filtered = SharedFunctions.bm3d_filter(image_data)
         elif noise_prediction == 'speckle':
+            # Establish connection to MATLAB Engine for SAR-BM3D filter
+            sar_bm3d = SARBM3D.SARBM3DFilter()
+            # Connect to MATLAB Engine for SAR-BM3D filter
+            sar_bm3d.connect_matlab()
             # Apply SAR-BM3D filter
-            image_filtered = self.sar_bm3d.sar_bm3d_filter(image_data, image_name)
+            image_filtered = sar_bm3d.sar_bm3d_filter(image_data, image_name)
+            # Disconnect from MATLAB Engine
+            sar_bm3d.disconnect_matlab()
         elif noise_prediction == 'salt-pepper':
             # Apply Median filter. Padding is required for median filter.
             image_padded = pad(array=image_data, pad_width=1, mode='constant', constant_values=0)
@@ -142,10 +170,20 @@ class BM3DELBPImage(DatasetManager.Image):
         Doing this for each fold would be enormously slow, so it allows this to be reused.
         """
         super().__init__(image.data, image.name, image.label)
+        # Import attributes from DatasetManager.Image
+        self.featurevector = image.featurevector
+        self.test_data = image.test_data
+        self.test_featurevector = image.test_featurevector
+        self.test_noise = image.test_noise
+        self.test_noise_val = image.test_noise_val
+        self.test_rotations = image.test_rotations
+        self.test_scale = image.test_scale
+
+        self.test_noise_featurevector = None  # Featurevector for the noise identifier generated on test image
         self.noise_prediction = None  # Prediction Noise Classifier made for original image data
 
         self.gauss_10_data = None
-        self.gauss_10_noise_featurevector = None  # Feaurevector for the noise identifier
+        self.gauss_10_noise_featurevector = None  # Featurevector for the noise identifier
         self.gauss_10_prediction = None  # When the Noise Classifier has predicted the noise type, store it here
         self.gauss_10_bm3d_featurevector = None
 
@@ -164,28 +202,33 @@ class BM3DELBPImage(DatasetManager.Image):
         self.salt_pepper_002_prediction = None
         self.salt_pepper_002_bm3d_featurevector = None
 
+    # Generate the noise featurevector for the test image to predict with the classifier
+    def generate_noise_featurevector(self, noise_classifier):
+        self.test_noise_featurevector = noise_classifier.describe(self.test_data, test_image=True)
+
+    # Generate noise on the non-test image (no transformations) to train the classifier with
     def generate_gauss_10(self, noise_classifier):
         self.gauss_10_data = ImageUtils.add_gaussian_noise_skimage(self.data, 10)
-        self.gauss_10_noise_featurevector = noise_classifier.describe(self.gauss_10_data, test_image=True)
+        self.gauss_10_noise_featurevector = noise_classifier.describe(self.gauss_10_data, test_image=False)
 
     def generate_gauss_25(self, noise_classifier):
         self.gauss_25_data = ImageUtils.add_gaussian_noise_skimage(self.data, 25)
-        self.gauss_25_noise_featurevector = noise_classifier.describe(self.gauss_25_data, test_image=True)
+        self.gauss_25_noise_featurevector = noise_classifier.describe(self.gauss_25_data, test_image=False)
 
     def generate_speckle_002(self, noise_classifier):
         self.speckle_002_data = ImageUtils.add_speckle_noise_skimage(self.data, 0.02)
-        self.speckle_002_noise_featurevector = noise_classifier.describe(self.speckle_002_data, test_image=True)
+        self.speckle_002_noise_featurevector = noise_classifier.describe(self.speckle_002_data, test_image=False)
 
     def generate_salt_pepper_002(self, noise_classifier):
         self.salt_pepper_002_data = ImageUtils.add_salt_pepper_noise_skimage(self.data, 0.02)
         self.salt_pepper_002_noise_featurevector = noise_classifier.describe(self.salt_pepper_002_data,
-                                                                                  test_image=True)
+                                                                                  test_image=False)
 
 
 class BM3DELBPPredictor(ImageClassifierInterface):
 
     def __init__(self, dataset: List[BM3DELBPImage], cross_validator):
-        super().__init__(None, cross_validator)
+        super().__init__(dataset, cross_validator)
         self.BM3DELBP = BM3DELBP()
         self.elbp = MRELBP.MedianRobustExtendedLBP()
         self.dataset = dataset
@@ -199,10 +242,24 @@ class BM3DELBPPredictor(ImageClassifierInterface):
         :return: Returns the test label and predicted label for every fold.
         """
 
+        if GlobalConfig.get('rotate'):
+            dataset = GlobalConfig.get('dataset') + '-rotated'
+        else:
+            dataset = GlobalConfig.get('dataset')
+
+        train_out_dir = os.path.join(os.getcwd(), 'out', 'BM3DELBP', dataset,
+                               self.BM3DELBP.get_outdir(noisy_image=False, scaled_image=False))
+
+        noisy_image = GlobalConfig.get('noise') is not None
+        scaled_image = GlobalConfig.get('test_scale') is not None
+        test_out_dir = os.path.join(os.getcwd(), 'out', 'BM3DELBP', dataset,
+                               self.BM3DELBP.get_outdir(noisy_image=noisy_image, scaled_image=scaled_image))
+
         fold = 1
         test_X_all = []
         test_y_all = []
         pred_y_all = []
+
         for train_index, test_index in self.cross_validator.split(self.dataset, self.dataset_y):
             print("Performing fold", fold)
             # Train NoiseClassifier on Train indexes only
@@ -211,37 +268,60 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             self.noise_classifier = NoiseTypePredictor(noise_classifier_train, None)
             self.noise_classifier.train()
 
+            print("Noise Classifier trained")
             # Remove any existing BM3DELBP classifier
             self.classifier = None
             # Train on this fold
             train = []
-            for index in train_index:
-                image = self.dataset[index]
-                image.featurevector = self.BM3DELBP.describe_filter(image=image, test_image=False)
-                train.append(image)
+            if GlobalConfig.get('multiprocess'):
+                with Pool(processes=4) as pool:
+                    # Generate featurevectors
+                    train = pool.starmap(self.BM3DELBP.describe_filter, zip([self.dataset[index] for index in train_index], repeat(False), repeat(train_out_dir), repeat(test_out_dir)))
+            else:
+                for index in train_index:
+                    train.append(self.BM3DELBP.describe_filter(image=self.dataset[index], test_image=False, train_out_dir=train_out_dir, test_out_dir=test_out_dir))
             self.train(train)
+
+            print("BM3DELBP Classifier trained on non-noisy images")
+            print("Making noise predictions for test images")
 
             test_X = []
             test_y = []
+
+            # Make noise prediction for each of the test images
             for index in test_index:
-                # Do NoiseClassifier Classification
                 image = self.dataset[index]
-                # Classify noise in Image data
-                image.noise_prediction = self.noise_classifier.classify(image.test_data)
-                # Apply BM3DELBP's appropriate filter and generate the BM3DELBP descriptor
-                image.test_featurevector = self.BM3DELBP.describe_filter(image=image, test_image=True)
-                test_X.append(image.test_featurevector)
-                test_y.append(image.label)
+                # Reshaping is required because we're classifying a single item at a time
+                image.noise_prediction = self.noise_classifier.classify(image.test_noise_featurevector.reshape(1, -1))
+
+            print("Noise predictions made on test images")
+            print("Applying relevant filter and generating BM3DELBP descriptor for test images")
+
+            # Apply BM3DELBP filter & generate BM3DELBP descriptor
+            if GlobalConfig.get('multiprocess'):
+                # Generate test_featurevectors using multiprocessing
+                with Pool(processes=4) as pool:
+                    test_images = pool.starmap(self.BM3DELBP.describe_filter, zip([self.dataset[index] for index in test_index], repeat(True), repeat(train_out_dir), repeat(test_out_dir)))
+                for image in test_images:
+                    test_X.append(image.test_featurevector)
+                    test_y.append(image.label)
+
+            else:
+                for index in test_index:
+                    # Apply BM3DELBP's appropriate filter and generate the BM3DELBP descriptor
+                    self.dataset[index] = self.BM3DELBP.describe_filter(image=self.dataset[index], test_image=True, train_out_dir=train_out_dir, test_out_dir=test_out_dir)
+                    test_X.append(self.dataset[index].test_featurevector)
+                    test_y.append(self.dataset[index].label)
 
             pred_y = self.classify(test_X)
             test_X_all.extend(test_X)
             test_y_all.extend(test_y)
             pred_y_all.extend(pred_y)
 
+            print("Test values classified")
+
             fold += 1
 
-        # Disconnect from MATLAB Python Engine
-        self.BM3DELBP.sar_bm3d.disconnect_matlab()
         return test_y_all, pred_y_all
 
     def train(self, train: List[DatasetManager.Image]):

@@ -132,7 +132,11 @@ class MedianRobustExtendedLBP(ImageProcessorInterface):
         for r, w_r in self.r_wr_scales:
             if w_r % 2 == 0:
                 raise ValueError('Kernel size w_r1 must be an odd number, but an even number was provided')
-            relbp_ni, relbp_rd = self.relbp_ni_rd(image.data, r, w_r)
+            if isinstance(image, np.ndarray):
+                relbp_ni, relbp_rd = self.relbp_ni_rd(image, r, w_r)
+            else:
+                relbp_ni, relbp_rd = self.relbp_ni_rd(image.data, r, w_r)
+
             if self.save_img:
                 if isinstance(image, np.ndarray):
                     raise ValueError('save_img set but passed as ndarray instead of DatasetManager.Image')
@@ -144,7 +148,10 @@ class MedianRobustExtendedLBP(ImageProcessorInterface):
             relbp_rd_hist = np.histogram(relbp_rd, self.p + 2)[0].astype(dtype=np.int32)
             relbp_ni_rd = np.concatenate((relbp_ni_rd, relbp_ni_hist, relbp_rd_hist))
 
-        relbp_ci_hist = self.relbp_ci(image.data, self.w_c, self.padding)
+        if isinstance(image, np.ndarray):
+            relbp_ci_hist = self.relbp_ci(image, self.w_c, self.padding)
+        else:
+            relbp_ci_hist = self.relbp_ci(image.data, self.w_c, self.padding)
 
         combined_histogram = np.concatenate((relbp_ci_hist, relbp_ni_rd))
         return combined_histogram

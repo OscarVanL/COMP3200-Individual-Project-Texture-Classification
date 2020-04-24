@@ -165,12 +165,13 @@ def main():
     # Out path for noise classifier
     noise_out_dir = os.path.join(os.getcwd(), 'out', 'NoiseClassifier', dataset_folder,
                                  "scale-{}".format(int(GlobalConfig.get('scale') * 100)))
+    test_noise_out_dir = os.path.join(os.getcwd(), 'out', 'NoiseClassifier', dataset_folder, algorithm.get_outdir(noisy_image, scaled_image))
 
     if GlobalConfig.get('multiprocess'):
         if GlobalConfig.get('algorithm') == 'NoiseClassifier' or GlobalConfig.get('algorithm') == 'BM3DELBP':
             with Pool(processes=4) as pool:
                 # Generate image featurevectors and replace DatasetManager.Image with BM3DELBP.BM3DELBPImage
-                dataset = pool.starmap(describe_noise, zip(dataset, repeat(noise_out_dir)))
+                dataset = pool.starmap(describe_noise, zip(dataset, repeat(noise_out_dir), repeat(test_noise_out_dir)))
         else:
             with Pool(processes=4) as pool:
                 # Generate featurevectors
@@ -181,7 +182,7 @@ def main():
         if GlobalConfig.get('algorithm') == 'NoiseClassifier' or GlobalConfig.get('algorithm') == 'BM3DELBP':
             for index, img in enumerate(dataset):
                 # Generate image featurevectors and replace DatasetManager.Image with BM3DELBP.BM3DELBPImage
-                dataset[index] = describe_noise(img, noise_out_dir)
+                dataset[index] = describe_noise(img, noise_out_dir, test_noise_out_dir)
         else:
             for index, img in enumerate(dataset):
                 # Generate featurevetors
@@ -304,11 +305,12 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
     return image
 
 
-def describe_noise(image: DatasetManager.Image, out_dir: str) -> BM3DELBP.BM3DELBPImage:
+def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str) -> BM3DELBP.BM3DELBPImage:
     """
     Applies BM3DELBP's Noise Classifier to generate featurevectors for every image, for each type of noise applied.
     :param image: Image applied to
     :param out_dir: Directory to write serialised featurevectors
+    :param test_out_dir: Directory to write serialised featurevector generated on test image
     :return: new_image : BM3DELBP.BM3DELBPImage for that image
     """
     new_image = BM3DELBP.BM3DELBPImage(image)
@@ -397,6 +399,27 @@ def describe_noise(image: DatasetManager.Image, out_dir: str) -> BM3DELBP.BM3DEL
             os.makedirs(out_cat)
         np.save(out_featurevector, new_image.salt_pepper_002_noise_featurevector)
         np.save(out_noisy_image, new_image.salt_pepper_002_data)
+
+    # Load / generate featurevector on test image
+    out_cat = os.path.join(test_out_dir, image.label)
+    out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
+    if GlobalConfig.get('debug'):
+        print("Read/Write to", out_noisy_image, "and", out_featurevector)
+    try:
+        new_image.test_noise_featurevector = np.load(out_featurevector)
+        if GlobalConfig.get('debug'):
+            print("Image featurevector loaded from file")
+    except IOError:
+        if GlobalConfig.get('debug'):
+            print("Processing image", image.name)
+        if new_image.test_data is None:
+            raise ValueError('Image.test_data has not been assigned')
+        new_image.generate_noise_featurevector(noise_classifier)
+        # Make output folder if it doesn't exist
+        if not (os.path.exists(out_cat)):
+            os.makedirs(out_cat)
+        np.save(out_featurevector, new_image.test_noise_featurevector)
+
 
     return new_image
 
