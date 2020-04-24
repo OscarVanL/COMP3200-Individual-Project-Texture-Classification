@@ -66,7 +66,7 @@ class SARBM3DFilter():
         # Initialise MATLAB engine
         self.eng = matlab.engine.start_matlab()
         # Check of SARBM3D_v10_win64 executables folder exists
-        self.SAMRBM3D_DIR = os.path.join(GlobalConfig.get('CWD'), 'algorithms', 'SARBM3D_v10_win64')
+        self.SAMRBM3D_DIR = os.path.join(os.getcwd(), 'algorithms', 'SARBM3D_v10_win64')
         if not os.path.exists(self.SAMRBM3D_DIR):
             raise FileNotFoundError('SARBM3D_v10_win64 executables missing. Place them in: ' + self.SAMRBM3D_DIR)
         # Switch to directory
