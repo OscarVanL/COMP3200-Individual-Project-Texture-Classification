@@ -11,6 +11,7 @@ class GlobalConfig:
         "train_ratio": 1.0,
         "scale": 1.0,
         "test_scale": None,
+        "folds": 100,
         "rotate": False,
         "noise": None,
         "noise_val": None,
@@ -22,7 +23,7 @@ class GlobalConfig:
         "CWD": None
     }
 
-    __setters = ["algorithm", "dataset", "train_ratio", "scale", "test_scale", "rotate", "noise", "noise_val", "multiprocess", "cpu_count", "examples", "ECS", "debug", "CWD"]
+    __setters = ["algorithm", "dataset", "train_ratio", "scale", "test_scale", "folds", "rotate", "noise", "noise_val", "multiprocess", "cpu_count", "examples", "ECS", "debug", "CWD"]
 
     @staticmethod
     def get(name):

@@ -155,7 +155,7 @@ def median_filter(image, kernel_size, padding, out_filtered):
             out_filtered[x, y] = np.median(image[x - patch:x + patch + 1, y - patch:y + patch + 1])
 
 
-def bm3d_filter(image, sigma_psd=30/255):
+def bm3d_filter(image, sigma_psd=50/255):
     """
     Perform BM3D filter on image
     :param image: Image (numpy ndarray) to perform bm3d filter on
@@ -164,7 +164,7 @@ def bm3d_filter(image, sigma_psd=30/255):
     """
     # I've contacted the researchers behind the paper I'm implementing and made a post on Stack Overflow to see what
     # PSD should be. See https://dsp.stackexchange.com/questions/66492/
-    denoised_image = bm3d.bm3d(image + 1.0, sigma_psd=sigma_psd, stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING)
+    denoised_image = bm3d.bm3d(image, sigma_psd=sigma_psd, stage_arg=bm3d.BM3DStages.ALL_STAGES)
     return denoised_image
 
 

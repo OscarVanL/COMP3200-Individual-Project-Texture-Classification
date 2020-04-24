@@ -31,6 +31,7 @@ Args:
 -t or --train-ratio : Ratio of the dataset to use for training. Eg: 0.8
 -s or --scale : Amount to rescale the training textures. Eg: 0.5 to halve the resolution
 -S or --test-scale : Amount to rescale the test textures. This is used for the scale invariance test
+-k or --folds : Number of cross folds to complete
 -r or --rotations : Whether to use rotated textures for the test images.
 -n or --noise : Which type of noise to apply to test textures ('gaussian', 'speckle', 'salt-pepper')
 -i or --intensity : How much noise to apply to test textures (Sigma / Variance / Ratio)
@@ -44,8 +45,8 @@ def main():
     # Parse Args.
     # 'scale' allows the image_scaled scale to be set. Eg: 0.25, 0.5, 1.0
     argList = sys.argv[1:]
-    shortArg = 'a:d:t:s:S:rn:i:me'
-    longArg = ['algorithm=', 'dataset=', 'train-ratio=', 'scale=', 'test-scale=', 'rotations', 'noise=', 'noise-intensity=', 'multiprocess', 'example',
+    shortArg = 'a:d:t:s:S:k:rn:i:me'
+    longArg = ['algorithm=', 'dataset=', 'train-ratio=', 'scale=', 'test-scale=', 'folds=', 'rotations', 'noise=', 'noise-intensity=', 'multiprocess', 'example',
                'ecs', 'debug']
 
     valid_algorithms = ['RLBP', 'MRLBP', 'MRELBP', 'BM3DELBP', 'NoiseClassifier']
@@ -86,6 +87,9 @@ def main():
                     GlobalConfig.set('test_scale', float(val))
                 else:
                     raise ValueError('Test scale must be 0 < scale <= 1.0')
+            elif arg in ('-k', '--folds'):
+                print('Doing {} folds'.format(val))
+                GlobalConfig.set("folds", val)
             elif arg in ('-r', '--rotations'):
                 print('Using rotated image_scaled sources')
                 GlobalConfig.set("rotate", True)
@@ -389,24 +393,24 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
             os.makedirs(out_cat)
         np.save(out_featurevector, new_image.gauss_25_noise_featurevector)
 
-    # Load / generate Speckle 2% noise featurevector
-    out_cat = os.path.join(out_dir, 'speckle-002', image.label)
+    # Load / generate Speckle 4% noise featurevector
+    out_cat = os.path.join(out_dir, 'speckle-004', image.label)
     out_noisy_image = os.path.join(out_cat, '{}-image.npy'.format(image.name))
     out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
     if GlobalConfig.get('debug'):
         print("Read/Write to", out_noisy_image, "and", out_featurevector)
     try:
-        new_image.speckle_002_noise_featurevector = np.load(out_featurevector)
+        new_image.speckle_004_noise_featurevector = np.load(out_featurevector)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
     except IOError:
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
-        new_image.generate_speckle_002(noise_classifier)
+        new_image.generate_speckle(noise_classifier, 0.04)
         # Make output folder if it doesn't exist
         if not (os.path.exists(out_cat)):
             os.makedirs(out_cat)
-        np.save(out_featurevector, new_image.speckle_002_noise_featurevector)
+        np.save(out_featurevector, new_image.speckle_004_noise_featurevector)
 
     # Load / generate Salt and Pepper 2% noise featurevector
     out_cat = os.path.join(out_dir, 'salt-pepper-002', image.label)

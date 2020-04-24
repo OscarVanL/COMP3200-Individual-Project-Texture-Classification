@@ -110,7 +110,7 @@ class KylbergTextures:
         This uses a fixed random_state=0, so that every time each cross fold contains the same subset of data.
         :return: sklearn.model_selection.ShuffleSplit with relevant parameters.
         """
-        return StratifiedShuffleSplit(n_splits=100, train_size=GlobalConfig.get('train_ratio'), random_state=0)
+        return StratifiedShuffleSplit(n_splits=GlobalConfig.get('folds'), train_size=GlobalConfig.get('train_ratio'), random_state=0)
 
     @staticmethod
     def load_image(path):
