@@ -117,6 +117,11 @@ def main():
     if GlobalConfig.get('examples'):
         write_examples()
 
+    if GlobalConfig.get('ECS'):
+        GlobalConfig.set('CWD', r'\\filestore.soton.ac.uk\users\ojvl1g17\mydocuments\COMP3200-Texture-Classification')
+    else:
+        GlobalConfig.set('CWD', os.getcwd())
+
     # Load configured Dataset
     if GlobalConfig.get('dataset') == 'kylberg':
         if GlobalConfig.get('debug'):
@@ -139,7 +144,7 @@ def main():
     else:
         dataset_folder = GlobalConfig.get('dataset')
 
-    out_folder = os.path.join(os.getcwd(), 'out', GlobalConfig.get('algorithm'), dataset_folder)
+    out_folder = os.path.join(GlobalConfig.get('CWD'), 'out', GlobalConfig.get('algorithm'), dataset_folder)
     # Initialise algorithm
     if GlobalConfig.get('algorithm') == 'RLBP':
         print("Applying RLBP algorithm")
@@ -173,9 +178,9 @@ def main():
         scaled_image = False
     test_out_dir = os.path.join(out_folder, algorithm.get_outdir(noisy_image, scaled_image))
     # Out path for noise classifier
-    noise_out_dir = os.path.join(os.getcwd(), 'out', 'NoiseClassifier', dataset_folder,
+    noise_out_dir = os.path.join(GlobalConfig.get('CWD'), 'out', 'NoiseClassifier', dataset_folder,
                                  "scale-{}".format(int(GlobalConfig.get('scale') * 100)))
-    test_noise_out_dir = os.path.join(os.getcwd(), 'out', 'NoiseClassifier', dataset_folder, algorithm.get_outdir(noisy_image, scaled_image))
+    test_noise_out_dir = os.path.join(GlobalConfig.get('CWD'), 'out', 'NoiseClassifier', dataset_folder, algorithm.get_outdir(noisy_image, scaled_image))
 
     if GlobalConfig.get('multiprocess'):
         if GlobalConfig.get('algorithm') == 'NoiseClassifier' or GlobalConfig.get('algorithm') == 'BM3DELBP':
@@ -251,7 +256,7 @@ def write_examples():
     """
     print("Generating algorithm example images")
     ex = GenerateExamples.GenerateExamples(
-        os.path.join(os.getcwd(), 'data', 'kylberg', 'blanket1', 'blanket1-a-p001.png'))
+        os.path.join(GlobalConfig.get('CWD'), 'data', 'kylberg', 'blanket1', 'blanket1-a-p001.png'))
     # Todo: Re-enable other example generation
     #ex.write_noise_examples()
     #ex.write_RLBP_example()

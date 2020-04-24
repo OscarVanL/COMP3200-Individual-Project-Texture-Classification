@@ -249,12 +249,12 @@ class BM3DELBPPredictor(ImageClassifierInterface):
         else:
             dataset = GlobalConfig.get('dataset')
 
-        train_out_dir = os.path.join(os.getcwd(), 'out', 'BM3DELBP', dataset,
+        train_out_dir = os.path.join(GlobalConfig.get('CWD'), 'out', 'BM3DELBP', dataset,
                                self.BM3DELBP.get_outdir(noisy_image=False, scaled_image=False))
 
         noisy_image = GlobalConfig.get('noise') is not None
         scaled_image = GlobalConfig.get('test_scale') is not None
-        test_out_dir = os.path.join(os.getcwd(), 'out', 'BM3DELBP', dataset,
+        test_out_dir = os.path.join(GlobalConfig.get('CWD'), 'out', 'BM3DELBP', dataset,
                                self.BM3DELBP.get_outdir(noisy_image=noisy_image, scaled_image=scaled_image))
 
         fold = 1

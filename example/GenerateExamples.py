@@ -2,6 +2,7 @@ import os
 import cv2
 from data import ImageUtils, DatasetManager
 from algorithms import RLBP, MRELBP, BM3DELBP, NoiseClassifier
+from config import GlobalConfig
 
 
 class GenerateExamples:
@@ -34,7 +35,7 @@ class GenerateExamples:
         self.image_speckle.test_noise = 'speckle'; self.image_speckle.test_noise_val = 0.02
         self.image_salt_pepper_002 = DatasetManager.Image(image_salt_pepper, image_name, image_label)
         self.image_salt_pepper_002.test_noise = 'salt-pepper'; self.image_salt_pepper_002.noise_val = 0.02
-        self.path = os.path.join(os.getcwd(), 'example')
+        self.path = os.path.join(GlobalConfig.get('CWD'), 'example')
 
         write_image(ImageUtils.convert_float32_image_uint8(self.image_unscaled.data), None, image_name + '-unedited.png')
         write_image(ImageUtils.convert_float32_image_uint8(self.image_scaled.data), None, image_name + '-scaled.png')
@@ -92,9 +93,9 @@ class GenerateExamples:
 
 def write_image(image, folder, image_name):
     if folder is None:
-        out_dir = os.path.join(os.getcwd(), 'example')
+        out_dir = os.path.join(GlobalConfig.get('CWD'), 'example')
     else:
-        out_dir = os.path.join(os.getcwd(), 'example', folder)
+        out_dir = os.path.join(GlobalConfig.get('CWD'), 'example', folder)
 
     # If requested folder doesn't exist, make it
     if not os.path.exists(out_dir):
