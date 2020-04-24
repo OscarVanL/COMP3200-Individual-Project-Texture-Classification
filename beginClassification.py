@@ -1,6 +1,10 @@
 import getopt
 import sys
 import os
+
+from numba import config
+config.THREADING_LAYER = 'workqueue'
+
 import numpy as np
 
 import ClassificationUtils
@@ -11,6 +15,7 @@ from algorithms.AlgorithmInterfaces import ImageProcessorInterface
 from example import GenerateExamples
 from multiprocessing import Pool
 from itertools import repeat
+
 
 """
 This is the general launcher script for all IP functionality.
@@ -31,7 +36,6 @@ Args:
 --ecs : If running on an ECS Lab machine, load the dataset from C:\Local instead of the CWD.
 --debug : Whether to run in debug mode (uses a reduced dataset to speed up execution, prints more stuff)
 """
-
 
 def main():
     # Parse Args.
