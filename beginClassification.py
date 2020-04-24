@@ -341,7 +341,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         print("Read/Write to", out_noisy_image, "and", out_featurevector)
     try:
         new_image.gauss_10_noise_featurevector = np.load(out_featurevector)
-        new_image.gauss_10_data = np.load(out_noisy_image)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
     except IOError:
@@ -352,7 +351,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         if not (os.path.exists(out_cat)):
             os.makedirs(out_cat)
         np.save(out_featurevector, new_image.gauss_10_noise_featurevector)
-        np.save(out_noisy_image, new_image.gauss_10_data)
 
     # Load / generate Gaussian sigma 25 noise featurevector
     out_cat = os.path.join(out_dir, 'gaussian-25', image.label)
@@ -362,7 +360,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         print("Read/Write to", out_noisy_image, "and", out_featurevector)
     try:
         new_image.gauss_25_noise_featurevector = np.load(out_featurevector)
-        new_image.gauss_25_data = np.load(out_noisy_image)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
     except IOError:
@@ -373,7 +370,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         if not (os.path.exists(out_cat)):
             os.makedirs(out_cat)
         np.save(out_featurevector, new_image.gauss_25_noise_featurevector)
-        np.save(out_noisy_image, new_image.gauss_25_data)
 
     # Load / generate Speckle 2% noise featurevector
     out_cat = os.path.join(out_dir, 'speckle-002', image.label)
@@ -383,7 +379,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         print("Read/Write to", out_noisy_image, "and", out_featurevector)
     try:
         new_image.speckle_002_noise_featurevector = np.load(out_featurevector)
-        new_image.speckle_002_data = np.load(out_noisy_image)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
     except IOError:
@@ -394,7 +389,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         if not (os.path.exists(out_cat)):
             os.makedirs(out_cat)
         np.save(out_featurevector, new_image.speckle_002_noise_featurevector)
-        np.save(out_noisy_image, new_image.speckle_002_data)
 
     # Load / generate Salt and Pepper 2% noise featurevector
     out_cat = os.path.join(out_dir, 'salt-pepper-002', image.label)
@@ -404,7 +398,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         print("Read/Write to", out_noisy_image, "and", out_featurevector)
     try:
         new_image.salt_pepper_002_noise_featurevector = np.load(out_featurevector)
-        new_image.salt_pepper_002_data = np.load(out_noisy_image)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
     except IOError:
@@ -415,7 +408,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         if not (os.path.exists(out_cat)):
             os.makedirs(out_cat)
         np.save(out_featurevector, new_image.salt_pepper_002_noise_featurevector)
-        np.save(out_noisy_image, new_image.salt_pepper_002_data)
 
     # Load / generate featurevector on test image
     out_cat = os.path.join(test_out_dir, image.label)

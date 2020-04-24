@@ -186,22 +186,18 @@ class BM3DELBPImage(DatasetManager.Image):
         self.test_noise_featurevector = None  # Featurevector for the noise identifier generated on test image
         self.noise_prediction = None  # Prediction Noise Classifier made for original image data
 
-        self.gauss_10_data = None
         self.gauss_10_noise_featurevector = None  # Featurevector for the noise identifier
         self.gauss_10_prediction = None  # When the Noise Classifier has predicted the noise type, store it here
         self.gauss_10_bm3d_featurevector = None
 
-        self.gauss_25_data = None
         self.gauss_25_noise_featurevector = None
         self.gauss_25_prediction = None
         self.gauss_25_bm3d_featurevector = None
 
-        self.speckle_002_data = None
         self.speckle_002_noise_featurevector = None
         self.speckle_002_prediction = None
         self.speckle_002_bm3d_featurevector = None
 
-        self.salt_pepper_002_data = None
         self.salt_pepper_002_noise_featurevector = None
         self.salt_pepper_002_prediction = None
         self.salt_pepper_002_bm3d_featurevector = None
@@ -212,20 +208,20 @@ class BM3DELBPImage(DatasetManager.Image):
 
     # Generate noise on the non-test image (no transformations) to train the classifier with
     def generate_gauss_10(self, noise_classifier):
-        self.gauss_10_data = ImageUtils.add_gaussian_noise_skimage(self.data, 10)
-        self.gauss_10_noise_featurevector = noise_classifier.describe(self.gauss_10_data, test_image=False)
+        gauss_10_data = ImageUtils.add_gaussian_noise_skimage(self.data, 10)
+        self.gauss_10_noise_featurevector = noise_classifier.describe(gauss_10_data, test_image=False)
 
     def generate_gauss_25(self, noise_classifier):
-        self.gauss_25_data = ImageUtils.add_gaussian_noise_skimage(self.data, 25)
-        self.gauss_25_noise_featurevector = noise_classifier.describe(self.gauss_25_data, test_image=False)
+        gauss_25_data = ImageUtils.add_gaussian_noise_skimage(self.data, 25)
+        self.gauss_25_noise_featurevector = noise_classifier.describe(gauss_25_data, test_image=False)
 
     def generate_speckle_002(self, noise_classifier):
-        self.speckle_002_data = ImageUtils.add_speckle_noise_skimage(self.data, 0.02)
-        self.speckle_002_noise_featurevector = noise_classifier.describe(self.speckle_002_data, test_image=False)
+        speckle_002_data = ImageUtils.add_speckle_noise_skimage(self.data, 0.02)
+        self.speckle_002_noise_featurevector = noise_classifier.describe(speckle_002_data, test_image=False)
 
     def generate_salt_pepper_002(self, noise_classifier):
-        self.salt_pepper_002_data = ImageUtils.add_salt_pepper_noise_skimage(self.data, 0.02)
-        self.salt_pepper_002_noise_featurevector = noise_classifier.describe(self.salt_pepper_002_data,
+        salt_pepper_002_data = ImageUtils.add_salt_pepper_noise_skimage(self.data, 0.02)
+        self.salt_pepper_002_noise_featurevector = noise_classifier.describe(salt_pepper_002_data,
                                                                                   test_image=False)
 
 
