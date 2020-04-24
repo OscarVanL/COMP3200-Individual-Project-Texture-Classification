@@ -53,7 +53,33 @@ class BM3DELBP(ImageProcessorInterface):
         if image is None:
             raise ValueError("Image passed into describe_filter is NoneType")
 
-        if test_image:
+        if not test_image and image.featurevector is None:
+            # Non-noisy original image for training
+            out_file = os.path.join(train_out_dir, '{}.npy'.format(image.name))
+            # Read/generate featurevector for image
+            if GlobalConfig.get('debug'):
+                print("Read/Write BM3DELBP featurevector file to", out_file)
+            try:
+                image.featurevector = np.load(out_file)
+                image.data = None  # Unassign image data as it's no longer needed
+                if GlobalConfig.get('debug'):
+                    print("Image featurevector loaded from file")
+
+            except IOError:
+                if GlobalConfig.get('debug'):
+                    print("Processing image", image.name)
+                image.featurevector = self.describe(image.data, test_image=False)
+                image.data = None  # Unassign image data as it's no longer needed
+
+                # Make output folder if it doesn't exist
+                if not (os.path.exists(train_out_dir)):
+                    os.makedirs(train_out_dir)
+
+                np.save(out_file, image.featurevector)
+
+
+        # Check test_featurevector isn't already assigned, as it may have already been assigned in a previous fold
+        if test_image and image.test_featurevector is None:
             # When storing test image generated featurevectors, store the featurevectors according to their noise type
             # prediction.
             test_out_dir = os.path.join(test_out_dir, self.get_filter_name(image.noise_prediction))
@@ -63,7 +89,8 @@ class BM3DELBP(ImageProcessorInterface):
             if GlobalConfig.get('debug'):
                 print("Read/Write BM3DELBP featurevector file to", out_file)
             try:
-                featurevector = np.load(out_file)
+                image.test_featurevector = np.load(out_file)
+                image.test_data = None
                 if GlobalConfig.get('debug'):
                     print("Image featurevector loaded from file")
             except IOError:
@@ -73,46 +100,14 @@ class BM3DELBP(ImageProcessorInterface):
                 if image.noise_prediction is None:
                     raise ValueError('describe_filter called on BM3DELBP image where no noise prediction has been made')
                 test_data_filtered = self.apply_filter(image.test_data, image.name, image.noise_prediction)
-                featurevector = self.describe(test_data_filtered, test_image=True)
+                image.test_featurevector = self.describe(test_data_filtered, test_image=True)
+                image.data = None
 
                 # Make output folder if it doesn't exist
                 if not (os.path.exists(test_out_dir)):
                     os.makedirs(test_out_dir)
 
-                np.save(out_file, featurevector)
-        else:
-            # Non-noisy original image for training
-            out_file = os.path.join(train_out_dir, '{}.npy'.format(image.name))
-            # Read/generate featurevector for image
-            if GlobalConfig.get('debug'):
-                print("Read/Write BM3DELBP featurevector file to", out_file)
-            try:
-                featurevector = np.load(out_file)
-                if GlobalConfig.get('debug'):
-                    print("Image featurevector loaded from file")
-
-            except IOError:
-                if GlobalConfig.get('debug'):
-                    print("Processing image", image.name)
-                featurevector = self.describe(image.data, test_image=False)
-
-                # Make output folder if it doesn't exist
-                if not (os.path.exists(train_out_dir)):
-                    os.makedirs(train_out_dir)
-
-                np.save(out_file, featurevector)
-
-        if test_image:
-            image.test_featurevector = featurevector
-            # Free up memory now that featurevector is generated, we don't need it anymore
-            image.test_data = None
-        else:
-            image.featurevector = featurevector
-            # Free up memory now that featurevector is generated
-            image.data = None
-
-        if image is None:
-            raise ValueError("Final Image in describe_filter is NoneType")
+                np.save(out_file, image.test_featurevector)
 
         return image
 
@@ -306,8 +301,8 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             if GlobalConfig.get('multiprocess'):
                 # Generate test_featurevectors using multiprocessing
                 for image in tqdm.tqdm(pool.istarmap(self.BM3DELBP.describe_filter,
-                                                     zip([self.dataset[index] for index in test_index], repeat(True), repeat(train_out_dir), repeat(test_out_dir)),
-                                        total=len(test_index), desc='BM3DELBP Test Featurevectors')):
+                                                     zip([self.dataset[index] for index in test_index], repeat(True), repeat(train_out_dir), repeat(test_out_dir))),
+                                        total=len(test_index), desc='BM3DELBP Test Featurevectors'):
                     test_X.append(image.test_featurevector)
                     test_y.append(image.label)
             else:
