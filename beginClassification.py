@@ -263,6 +263,9 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
         print("Read/Write train file to", train_out_file)
     try:
         image.featurevector = np.load(train_out_file)
+        # Remove image data from memory, we don't need it anymore.
+        image.data = None
+
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
 
@@ -270,6 +273,8 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         image.featurevector = algorithm.describe(image, test_image=False)
+        # Remove image data from memory, we don't need it anymore.
+        image.data = None
 
         # Make output folder if it doesn't exist
         if not (os.path.exists(train_out_cat)):
@@ -283,6 +288,8 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
             print("Read/Write test file to", test_out_file)
         try:
             image.test_featurevector = np.load(test_out_file)
+            # Remove test image data from memory, we don't need it anymore.
+            image.test_data = None
             if GlobalConfig.get('debug'):
                 print("Noisy Image featurevector loaded from file")
 
@@ -290,6 +297,8 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
             if GlobalConfig.get('debug'):
                 print("Processing image", image.name)
             image.test_featurevector = algorithm.describe(image, test_image=True)
+            # Remove test image data from memory, we don't need it anymore.
+            image.test_data = None
 
             # Make output folder if it doesn't exist
             if not (os.path.exists(test_out_cat)):

@@ -102,8 +102,12 @@ class BM3DELBP(ImageProcessorInterface):
 
         if test_image:
             image.test_featurevector = featurevector
+            # Free up memory now that featurevector is generated, we don't need it anymore
+            image.test_data = None
         else:
             image.featurevector = featurevector
+            # Free up memory now that featurevector is generated
+            image.data = None
 
         if image is None:
             raise ValueError("Final Image in describe_filter is NoneType")
