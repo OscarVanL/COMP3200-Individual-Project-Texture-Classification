@@ -72,8 +72,10 @@ class BM3DELBP(ImageProcessorInterface):
                 image.data = None  # Unassign image data as it's no longer needed
 
                 # Make output folder if it doesn't exist
-                if not (os.path.exists(train_out_dir)):
+                try:
                     os.makedirs(train_out_dir)
+                except FileExistsError:
+                    pass
 
                 np.save(out_file, image.featurevector)
 
@@ -104,8 +106,10 @@ class BM3DELBP(ImageProcessorInterface):
                 image.data = None
 
                 # Make output folder if it doesn't exist
-                if not (os.path.exists(test_out_dir)):
+                try:
                     os.makedirs(test_out_dir)
+                except FileExistsError:
+                    pass
 
                 np.save(out_file, image.test_featurevector)
 
