@@ -89,7 +89,7 @@ def main():
                     raise ValueError('Test scale must be 0 < scale <= 1.0')
             elif arg in ('-k', '--folds'):
                 print('Doing {} folds'.format(val))
-                GlobalConfig.set("folds", val)
+                GlobalConfig.set("folds", int(val))
             elif arg in ('-r', '--rotations'):
                 print('Using rotated image_scaled sources')
                 GlobalConfig.set("rotate", True)

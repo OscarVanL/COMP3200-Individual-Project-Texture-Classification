@@ -1,5 +1,6 @@
 from typing import List
 
+from collections import Counter
 from algorithms import SharedFunctions
 from algorithms.AlgorithmInterfaces import ImageProcessorInterface, NoiseClassifierInterface
 from scipy.stats import skew, kurtosis
@@ -142,6 +143,8 @@ class NoiseTypePredictor(NoiseClassifierInterface):
         test_y_all = []
         pred_y_all = []
         for train_index, test_index in self.cross_validator.split(self.dataset_X, self.dataset_y):
+
+
             print("Performing fold", fold)
             # Remove any existing classifiers
             self.classifier = None
@@ -150,6 +153,9 @@ class NoiseTypePredictor(NoiseClassifierInterface):
             # Train noise noise_classifier on this fold
             noise_train_X = [self.dataset_X[index] for index in train_index]
             noise_train_y = [self.dataset_y[index] for index in train_index]
+
+            print("DEBUG: Class Counter (to check if train classes are balanced)")
+            print(Counter(noise_train_y))
 
             self.train_on(noise_train_X, noise_train_y)
 
