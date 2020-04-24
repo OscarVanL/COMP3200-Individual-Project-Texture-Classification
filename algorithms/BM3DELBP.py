@@ -300,11 +300,12 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             # Apply BM3DELBP filter & generate BM3DELBP descriptor
             if GlobalConfig.get('multiprocess'):
                 # Generate test_featurevectors using multiprocessing
-                for image in tqdm.tqdm(pool.istarmap(self.BM3DELBP.describe_filter,
-                                                     zip([self.dataset[index] for index in test_index], repeat(True), repeat(train_out_dir), repeat(test_out_dir))),
-                                        total=len(test_index), desc='BM3DELBP Test Featurevectors'):
-                    test_X.append(image.test_featurevector)
-                    test_y.append(image.label)
+                with Pool(GlobalConfig.get('cpu_count')) as pool:
+                    for image in tqdm.tqdm(pool.istarmap(self.BM3DELBP.describe_filter,
+                                                         zip([self.dataset[index] for index in test_index], repeat(True), repeat(train_out_dir), repeat(test_out_dir))),
+                                            total=len(test_index), desc='BM3DELBP Test Featurevectors'):
+                        test_X.append(image.test_featurevector)
+                        test_y.append(image.label)
             else:
                 for index in test_index:
                     # Apply BM3DELBP's appropriate filter and generate the BM3DELBP descriptor
