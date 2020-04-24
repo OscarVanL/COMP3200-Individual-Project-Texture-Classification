@@ -9,9 +9,7 @@ function IMG_FILTERED = SARBM3D_Python_Helper(path, L)
 %   Detailed explanation goes here
 Z = load(path); 
 IMG = Z.image_data;
-tic;
 IMG_FILTERED = SARBM3D_v10(IMG,L);
-toc,
 
 end
 

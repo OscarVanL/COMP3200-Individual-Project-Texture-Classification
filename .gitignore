@@ -1,0 +1,78 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Datasets
+data/kylberg-rotated/
+data/kylberg/
+
+# SAR-BM3D files
+algorithms/SARBM3D_v10_win64/LICENSE.txt
+algorithms/SARBM3D_v10_win64/README.txt
+algorithms/SARBM3D_v10_win64/SARBM3D_demo.m
+algorithms/SARBM3D_v10_win64/SARBM3D_step1.m
+algorithms/SARBM3D_v10_win64/SARBM3D_step1.mexw64
+algorithms/SARBM3D_v10_win64/SARBM3D_step2.m
+algorithms/SARBM3D_v10_win64/SARBM3D_step2.mexw64
+algorithms/SARBM3D_v10_win64/SARBM3D_v10.m
+algorithms/SARBM3D_v10_win64/cv210.dll
+algorithms/SARBM3D_v10_win64/cvaux210.dll
+algorithms/SARBM3D_v10_win64/cxcore210.dll
+algorithms/SARBM3D_v10_win64/license_opencv.txt
+algorithms/SARBM3D_v10_win64/ml210.dll
+algorithms/SARBM3D_v10_win64/napoli.raw
+algorithms/SARBM3D_v10_win64/napoli_noisy.raw
+algorithms/SARBM3D_v10_win64/psnr.m
+algorithms/SARBM3D_v10_win64/removezeros.m
+algorithms/SARBM3D_v10_win64/removezeros.mexw64
+algorithms/SARBM3D_v10_win64/temp/
+
+# Numpy serialised featurevectors
+*.npy
+
+# C extensions
+*.so
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# Rope
+.ropeproject
+
+# Django stuff:
+*.log
+*.pot
+
+# Sphinx documentation
+docs/_build/

@@ -138,10 +138,10 @@ class BM3DELBP(ImageProcessorInterface):
             return 'BM3D'
         elif noise_prediction == 'speckle':
             return 'SARBM3D'
-        elif noise_prediction == 'salt-peper':
+        elif noise_prediction == 'salt-pepper':
             return 'median'
         else:
-            raise ValueError('Noise prediction does not match expected values')
+            raise ValueError('Noise prediction {} does not match expected values'.format(noise_prediction))
 
     def apply_filter(self, image_data, image_name, noise_prediction):
         if noise_prediction == 'gaussian':

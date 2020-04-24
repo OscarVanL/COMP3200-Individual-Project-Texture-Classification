@@ -1,9 +1,8 @@
 import matlab.engine
 import os
-from scipy.io import savemat, loadmat
+from scipy.io import savemat
 import numpy as np
 import cv2
-from config import GlobalConfig
 
 """
 The only existing SAR-BM3D Source Code on the internet is written in Matlab.
@@ -71,9 +70,6 @@ class SARBM3DFilter():
             raise FileNotFoundError('SARBM3D_v10_win64 executables missing. Place them in: ' + self.SAMRBM3D_DIR)
         # Switch to directory
         self.eng.cd(self.SAMRBM3D_DIR, nargout=0)
-        print("MATLAB Working DIR:", self.eng.pwd())
-        if self.eng.isprime(37):
-            print("MATLAB connection successful")
 
     def disconnect_matlab(self):
         self.eng.quit()
