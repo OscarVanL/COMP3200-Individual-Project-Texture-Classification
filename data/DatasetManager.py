@@ -46,10 +46,16 @@ class KylbergTextures:
 
         if GlobalConfig.get('rotate'):
             print("Using rotated textures")
-            self.KYLBERG_DIR = os.path.join(os.getcwd(), 'data', 'kylberg-rotated')
+            if GlobalConfig.get('ECS'):
+                self.KYLBERG_DIR = os.path.join('C:/', 'Local', 'data', 'kylberg-rotated')
+            else:
+                self.KYLBERG_DIR = os.path.join(os.getcwd(), 'data', 'kylberg-rotated')
         else:
             print("Using non-rotated textures")
-            self.KYLBERG_DIR = os.path.join(os.getcwd(), 'data', 'kylberg')
+            if GlobalConfig.get('ECS'):
+                self.KYLBERG_DIR = os.path.join('C:/', 'Local', 'data', 'kylberg')
+            else:
+                self.KYLBERG_DIR = os.path.join(os.getcwd(), 'data', 'kylberg')
         print('Using {} scale'.format(GlobalConfig.get('scale')))
         if GlobalConfig.get('noise') is not None:
             print('Applying {} noise'.format(GlobalConfig.get('noise')))

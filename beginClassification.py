@@ -28,6 +28,7 @@ Args:
 -i or --intensity : How much noise to apply to test textures (Sigma / Variance / Ratio)
 -m or --multiprocess : Whether to use multi process featurevector generation
 -e or --example : Generate example images used in dissertation report
+--ecs : If running on an ECS Lab machine, load the dataset from C:\Local instead of the CWD.
 --debug : Whether to run in debug mode (uses a reduced dataset to speed up execution, prints more stuff)
 """
 
@@ -38,7 +39,7 @@ def main():
     argList = sys.argv[1:]
     shortArg = 'a:d:t:s:S:rn:i:me'
     longArg = ['algorithm=', 'dataset=', 'train-ratio=', 'scale=', 'test-scale=', 'rotations', 'noise=', 'noise-intensity=', 'multiprocess', 'example',
-               'debug']
+               'ecs', 'debug']
 
     valid_algorithms = ['RLBP', 'MRLBP', 'MRELBP', 'BM3DELBP', 'NoiseClassifier']
     valid_datasets = ['kylberg']
@@ -96,6 +97,9 @@ def main():
             elif arg in ('-e', '--example'):
                 print('Generating algorithm example image_scaled')
                 GlobalConfig.set("examples", True)
+            elif arg == '--ecs':
+                print("Loading dataset from C:\Local")
+                GlobalConfig.set('ECS', True)
             elif arg == '--debug':
                 print("Running in debug mode")
                 GlobalConfig.set('debug', True)
