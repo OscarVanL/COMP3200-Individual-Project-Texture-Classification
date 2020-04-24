@@ -1,6 +1,7 @@
 import getopt
 import sys
 import os
+import psutil
 
 from numba import config
 config.THREADING_LAYER = 'workqueue'
@@ -98,8 +99,10 @@ def main():
                 print('Using noise intensity (sigma / ratio) of:', val)
                 GlobalConfig.set("noise_val", float(val))
             elif arg in ('-m', '--multiprocess'):
-                print('Using multiple processes for computing featurevectors')
+                cores = psutil.cpu_count()  # Note: this gets physical (non-logical / hyperthreaded) cores
+                print('Using {} processor cores for computing featurevectors'.format(cores))
                 GlobalConfig.set('multiprocess', True)
+                GlobalConfig.set('cpu_count', cores)
             elif arg in ('-e', '--example'):
                 print('Generating algorithm example image_scaled')
                 GlobalConfig.set("examples", True)
@@ -184,7 +187,7 @@ def main():
 
     if GlobalConfig.get('multiprocess'):
         if GlobalConfig.get('algorithm') == 'NoiseClassifier' or GlobalConfig.get('algorithm') == 'BM3DELBP':
-            with Pool(processes=4) as pool:
+            with Pool(processes=GlobalConfig.get('cpu_count')) as pool:
                 # Generate image featurevectors and replace DatasetManager.Image with BM3DELBP.BM3DELBPImage
                 processed_dataset = []
                 for image in tqdm.tqdm(pool.istarmap(describe_noise, zip(dataset, repeat(noise_out_dir), repeat(test_noise_out_dir))),
@@ -193,7 +196,7 @@ def main():
                 dataset = processed_dataset
 
         else:
-            with Pool(processes=4) as pool:
+            with Pool(processes=GlobalConfig.get('cpu_count')) as pool:
                 # Generate featurevectors
                 processed_dataset = []
                 for image in tqdm.tqdm(pool.istarmap(describe_image, zip(repeat(algorithm), dataset, repeat(train_out_dir), repeat(test_out_dir))),

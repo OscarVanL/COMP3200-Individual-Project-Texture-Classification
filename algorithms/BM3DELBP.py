@@ -276,7 +276,7 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             # Train on this fold
             train = []
             if GlobalConfig.get('multiprocess'):
-                with Pool(processes=4) as pool:
+                with Pool(GlobalConfig.get('cpu_count')) as pool:
                     # Generate featurevectors
                     for image in tqdm.tqdm(pool.istarmap(self.BM3DELBP.describe_filter,
                                                          zip([self.dataset[index] for index in train_index], repeat(False), repeat(train_out_dir), repeat(test_out_dir))),

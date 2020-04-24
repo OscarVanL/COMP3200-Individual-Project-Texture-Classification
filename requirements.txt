@@ -7,3 +7,4 @@ scikit-image
 numba
 pandas
 tqdm
+psutil
