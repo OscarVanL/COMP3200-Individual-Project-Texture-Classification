@@ -17,10 +17,11 @@ class GlobalConfig:
         "multiprocess": False,
         "examples": False,
         "ECS": False,
-        "debug": False
+        "debug": False,
+        "CWD": None
     }
 
-    __setters = ["algorithm", "dataset", "train_ratio", "scale", "test_scale", "rotate", "noise", "noise_val", "multiprocess", "examples", "ECS", "debug"]
+    __setters = ["algorithm", "dataset", "train_ratio", "scale", "test_scale", "rotate", "noise", "noise_val", "multiprocess", "examples", "ECS", "debug", "CWD"]
 
     @staticmethod
     def get(name):
