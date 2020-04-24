@@ -292,7 +292,7 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
     if GlobalConfig.get('debug'):
         print("Read/Write train file to", train_out_file)
     try:
-        image.featurevector = np.load(train_out_file)
+        image.featurevector = np.load(train_out_file, allow_pickle=True)
         # Remove image data from memory, we don't need it anymore.
         image.data = None
 
@@ -317,7 +317,7 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
         if GlobalConfig.get('debug'):
             print("Read/Write test file to", test_out_file)
         try:
-            image.test_featurevector = np.load(test_out_file)
+            image.test_featurevector = np.load(test_out_file, allow_pickle=True)
             # Remove test image data from memory, we don't need it anymore.
             image.test_data = None
             if GlobalConfig.get('debug'):
@@ -362,7 +362,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
     if GlobalConfig.get('debug'):
         print("Read/Write to", out_noisy_image, "and", out_featurevector)
     try:
-        new_image.gauss_10_noise_featurevector = np.load(out_featurevector)
+        new_image.gauss_10_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
     except IOError:
@@ -383,7 +383,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
     if GlobalConfig.get('debug'):
         print("Read/Write to", out_noisy_image, "and", out_featurevector)
     try:
-        new_image.gauss_25_noise_featurevector = np.load(out_featurevector)
+        new_image.gauss_25_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
     except IOError:
@@ -404,7 +404,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
     if GlobalConfig.get('debug'):
         print("Read/Write to", out_noisy_image, "and", out_featurevector)
     try:
-        new_image.speckle_004_noise_featurevector = np.load(out_featurevector)
+        new_image.speckle_004_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
     except IOError:
@@ -425,7 +425,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
     if GlobalConfig.get('debug'):
         print("Read/Write to", out_noisy_image, "and", out_featurevector)
     try:
-        new_image.salt_pepper_002_noise_featurevector = np.load(out_featurevector)
+        new_image.salt_pepper_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
     except IOError:
@@ -445,7 +445,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
     if GlobalConfig.get('debug'):
         print("Read/Write to", out_noisy_image, "and", out_featurevector)
     try:
-        new_image.test_noise_featurevector = np.load(out_featurevector)
+        new_image.test_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
     except IOError:

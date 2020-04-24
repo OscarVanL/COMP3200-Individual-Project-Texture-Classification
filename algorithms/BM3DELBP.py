@@ -60,7 +60,7 @@ class BM3DELBP(ImageProcessorInterface):
             if GlobalConfig.get('debug'):
                 print("Read/Write BM3DELBP featurevector file to", out_file)
             try:
-                image.featurevector = np.load(out_file)
+                image.featurevector = np.load(out_file, allow_pickle=True)
                 image.data = None  # Unassign image data as it's no longer needed
                 if GlobalConfig.get('debug'):
                     print("Image featurevector loaded from file")
@@ -91,7 +91,7 @@ class BM3DELBP(ImageProcessorInterface):
             if GlobalConfig.get('debug'):
                 print("Read/Write BM3DELBP featurevector file to", out_file)
             try:
-                image.test_featurevector = np.load(out_file)
+                image.test_featurevector = np.load(out_file, allow_pickle=True)
                 image.test_data = None
                 if GlobalConfig.get('debug'):
                     print("Image featurevector loaded from file")
