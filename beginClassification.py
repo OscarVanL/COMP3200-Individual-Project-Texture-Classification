@@ -182,7 +182,7 @@ def main():
             with Pool(processes=4) as pool:
                 # Generate image featurevectors and replace DatasetManager.Image with BM3DELBP.BM3DELBPImage
                 processed_dataset = []
-                for image in tqdm.tqdm(pool.istarmap(describe_noise, zip(dataset, repeat(noise_out_dir, repeat(test_noise_out_dir)))),
+                for image in tqdm.tqdm(pool.istarmap(describe_noise, zip(dataset, repeat(noise_out_dir), repeat(test_noise_out_dir))),
                                        total=len(dataset), desc='Noise Featurevectors'):
                     processed_dataset.append(image)
                 dataset = processed_dataset
@@ -191,7 +191,7 @@ def main():
             with Pool(processes=4) as pool:
                 # Generate featurevectors
                 processed_dataset = []
-                for image in tqdm.tqdm(pool.istarmap(describe_image, zip(repeat(algorithm), dataset, repeat(train_out_dir, repeat(test_out_dir)))),
+                for image in tqdm.tqdm(pool.istarmap(describe_image, zip(repeat(algorithm), dataset, repeat(train_out_dir), repeat(test_out_dir))),
                                        total=len(dataset), desc='Texture Featurevectors'):
                     processed_dataset.append(image)
                 dataset = processed_dataset

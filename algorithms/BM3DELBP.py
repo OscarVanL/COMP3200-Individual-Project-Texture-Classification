@@ -279,7 +279,7 @@ class BM3DELBPPredictor(ImageClassifierInterface):
                 with Pool(processes=4) as pool:
                     # Generate featurevectors
                     for image in tqdm.tqdm(pool.istarmap(self.BM3DELBP.describe_filter,
-                                                         zip([self.dataset[index] for index in train_index], repeat(False), repeat(train_out_dir, repeat(test_out_dir)))),
+                                                         zip([self.dataset[index] for index in train_index], repeat(False), repeat(train_out_dir), repeat(test_out_dir))),
                                            total=len(train_index), desc='BM3DELBP Train Featurevectors'):
                         train.append(image)
             else:
