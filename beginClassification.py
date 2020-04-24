@@ -370,8 +370,10 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
             print("Processing image", image.name)
         new_image.generate_gauss_10(noise_classifier)
         # Make output folder if it doesn't exist
-        if not (os.path.exists(out_cat)):
+        try:
             os.makedirs(out_cat)
+        except FileExistsError:
+            pass
         np.save(out_featurevector, new_image.gauss_10_noise_featurevector)
 
     # Load / generate Gaussian sigma 25 noise featurevector
@@ -389,8 +391,10 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
             print("Processing image", image.name)
         new_image.generate_gauss_25(noise_classifier)
         # Make output folder if it doesn't exist
-        if not (os.path.exists(out_cat)):
+        try:
             os.makedirs(out_cat)
+        except FileExistsError:
+            pass
         np.save(out_featurevector, new_image.gauss_25_noise_featurevector)
 
     # Load / generate Speckle 4% noise featurevector
@@ -408,8 +412,10 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
             print("Processing image", image.name)
         new_image.generate_speckle(noise_classifier, 0.04)
         # Make output folder if it doesn't exist
-        if not (os.path.exists(out_cat)):
+        try:
             os.makedirs(out_cat)
+        except FileExistsError:
+            pass
         np.save(out_featurevector, new_image.speckle_004_noise_featurevector)
 
     # Load / generate Salt and Pepper 2% noise featurevector
@@ -427,8 +433,10 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
             print("Processing image", image.name)
         new_image.generate_salt_pepper_002(noise_classifier)
         # Make output folder if it doesn't exist
-        if not (os.path.exists(out_cat)):
+        try:
             os.makedirs(out_cat)
+        except FileExistsError:
+            pass
         np.save(out_featurevector, new_image.salt_pepper_002_noise_featurevector)
 
     # Load / generate featurevector on test image
@@ -447,8 +455,10 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
             raise ValueError('Image.test_data has not been assigned')
         new_image.generate_noise_featurevector(noise_classifier)
         # Make output folder if it doesn't exist
-        if not (os.path.exists(out_cat)):
+        try:
             os.makedirs(out_cat)
+        except FileExistsError:
+            pass
         np.save(out_featurevector, new_image.test_noise_featurevector)
 
 
