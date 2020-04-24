@@ -13,6 +13,8 @@ from data import DatasetManager
 from algorithms import RLBP, MRELBP, BM3DELBP, NoiseClassifier
 from algorithms.AlgorithmInterfaces import ImageProcessorInterface
 from example import GenerateExamples
+from other import istarmap
+import tqdm
 from multiprocessing import Pool
 from itertools import repeat
 
@@ -179,12 +181,20 @@ def main():
         if GlobalConfig.get('algorithm') == 'NoiseClassifier' or GlobalConfig.get('algorithm') == 'BM3DELBP':
             with Pool(processes=4) as pool:
                 # Generate image featurevectors and replace DatasetManager.Image with BM3DELBP.BM3DELBPImage
-                dataset = pool.starmap(describe_noise, zip(dataset, repeat(noise_out_dir), repeat(test_noise_out_dir)))
+                processed_dataset = []
+                for image in tqdm.tqdm(pool.istarmap(describe_noise, zip(dataset, repeat(noise_out_dir, repeat(test_noise_out_dir)))),
+                                       total=len(dataset), desc='Noise Featurevectors'):
+                    processed_dataset.append(image)
+                dataset = processed_dataset
+
         else:
             with Pool(processes=4) as pool:
                 # Generate featurevectors
-                dataset = pool.starmap(describe_image,
-                                       zip(repeat(algorithm), dataset, repeat(train_out_dir), repeat(test_out_dir)))
+                processed_dataset = []
+                for image in tqdm.tqdm(pool.istarmap(describe_image, zip(repeat(algorithm), dataset, repeat(train_out_dir, repeat(test_out_dir)))),
+                                       total=len(dataset), desc='Texture Featurevectors'):
+                    processed_dataset.append(image)
+                dataset = processed_dataset
     else:
         # Process the images without using multiprocessing Pools
         if GlobalConfig.get('algorithm') == 'NoiseClassifier' or GlobalConfig.get('algorithm') == 'BM3DELBP':

@@ -6,6 +6,8 @@ from algorithms.NoiseClassifier import NoiseTypePredictor
 from config import GlobalConfig
 from sklearn.svm import SVC
 from skimage.util import pad
+from other import istarmap
+import tqdm
 from multiprocessing import Pool
 from itertools import repeat
 import numpy as np
@@ -276,7 +278,10 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             if GlobalConfig.get('multiprocess'):
                 with Pool(processes=4) as pool:
                     # Generate featurevectors
-                    train = pool.starmap(self.BM3DELBP.describe_filter, zip([self.dataset[index] for index in train_index], repeat(False), repeat(train_out_dir), repeat(test_out_dir)))
+                    for image in tqdm.tqdm(pool.istarmap(self.BM3DELBP.describe_filter,
+                                                         zip([self.dataset[index] for index in train_index], repeat(False), repeat(train_out_dir, repeat(test_out_dir)))),
+                                           total=len(train_index), desc='BM3DELBP Train Featurevectors'):
+                        train.append(image)
             else:
                 for index in train_index:
                     train.append(self.BM3DELBP.describe_filter(image=self.dataset[index], test_image=False, train_out_dir=train_out_dir, test_out_dir=test_out_dir))
@@ -300,12 +305,11 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             # Apply BM3DELBP filter & generate BM3DELBP descriptor
             if GlobalConfig.get('multiprocess'):
                 # Generate test_featurevectors using multiprocessing
-                with Pool(processes=4) as pool:
-                    test_images = pool.starmap(self.BM3DELBP.describe_filter, zip([self.dataset[index] for index in test_index], repeat(True), repeat(train_out_dir), repeat(test_out_dir)))
-                for image in test_images:
+                for image in tqdm.tqdm(pool.istarmap(self.BM3DELBP.describe_filter,
+                                                     zip([self.dataset[index] for index in test_index], repeat(True), repeat(train_out_dir), repeat(test_out_dir)),
+                                        total=len(test_index), desc='BM3DELBP Test Featurevectors')):
                     test_X.append(image.test_featurevector)
                     test_y.append(image.label)
-
             else:
                 for index in test_index:
                     # Apply BM3DELBP's appropriate filter and generate the BM3DELBP descriptor

@@ -6,3 +6,4 @@ bm3d
 scikit-image
 numba
 pandas
+tqdm
