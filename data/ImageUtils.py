@@ -58,7 +58,8 @@ def add_gaussian_noise_numba(image, sigma):
 
 def add_gaussian_noise_skimage(image, sigma):
     # Note: variance = (standard deviation) ** 2
-    return random_noise(image, mode='gaussian', clip=True, var=sigma/255)
+    image_copy = image.copy()
+    return random_noise(image_copy, mode='gaussian', clip=True, var=sigma/255)
 
 
 @nb.njit('float32[:,:](float32[:,:], float32)')
@@ -111,6 +112,7 @@ def add_speckle_noise_numba(image, var):
 
 def add_speckle_noise_skimage(image, var):
     # For some reason, speckle noise does not apply properly in range [-1, 1]...
-    norm_image = cv2.normalize(image, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+    image_copy = image.copy()
+    norm_image = cv2.normalize(image_copy, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
     noisy_image = random_noise(norm_image, mode='speckle', clip=True, var=var)
     return cv2.normalize(noisy_image, None, alpha=-1, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)

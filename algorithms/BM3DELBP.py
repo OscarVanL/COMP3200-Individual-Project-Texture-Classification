@@ -222,8 +222,7 @@ class BM3DELBPImage(DatasetManager.Image):
 
     def generate_salt_pepper_002(self, noise_classifier):
         salt_pepper_002_data = ImageUtils.add_salt_pepper_noise_skimage(self.data, 0.02)
-        self.salt_pepper_002_noise_featurevector = noise_classifier.describe(salt_pepper_002_data,
-                                                                                  test_image=False)
+        self.salt_pepper_002_noise_featurevector = noise_classifier.describe(salt_pepper_002_data, test_image=False)
 
 
 class BM3DELBPPredictor(ImageClassifierInterface):

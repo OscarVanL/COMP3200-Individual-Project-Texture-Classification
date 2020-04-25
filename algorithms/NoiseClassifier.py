@@ -45,10 +45,10 @@ class NoiseClassifier(ImageProcessorInterface):
             image_data = image
 
         # Perform BM3D Filter
-        image_bm3d_filtered = SharedFunctions.bm3d_filter(image_data)
+        image_bm3d_filtered = SharedFunctions.bm3d_filter(image_data, 70/255)
         # Perform Homomorphic filter, Note: This requires images to be normalised in range [0, 255]
         image_scaled_255 = ImageUtils.convert_float32_image_uint8(image_data)
-        cutoff, a, b = 10, 1.3, 0.1
+        cutoff, a, b = 10, 0.75, 0.1
         image_homomorphic_filtered = SharedFunctions.homomorphic_filter(image_scaled_255, cutoff, a, b)
         image_homomorphic_filtered = ImageUtils.convert_uint8_image_float32(image_homomorphic_filtered)
         # Perform Median filter. Padding is required for median filter.
