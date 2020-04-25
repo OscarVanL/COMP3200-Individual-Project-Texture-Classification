@@ -232,7 +232,7 @@ def main():
         print("Performing BM3DELBP Classification")
         predictor = BM3DELBP.BM3DELBPPredictor(dataset, cross_validator)
     elif GlobalConfig.get('algorithm') == 'NoiseClassifier':
-        print("Applying noise noise_classifier")
+        print("Applying noise classifier")
         predictor = BM3DELBP.NoiseTypePredictor(dataset, cross_validator)
     else:
         raise ValueError('Invalid algorithm choice')
