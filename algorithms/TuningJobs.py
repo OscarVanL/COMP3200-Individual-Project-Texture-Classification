@@ -1,6 +1,10 @@
 import os
 
-from algorithms import NoiseClassifier, BM3DELBP
+from numba import config
+config.THREADING_LAYER = 'workqueue'
+
+from algorithms.NoiseClassifier import NoiseTypePredictor, NoiseClassifier
+from algorithms import BM3DELBP
 from config import GlobalConfig
 from data import DatasetManager, ImageUtils
 from other import istarmap
@@ -26,7 +30,7 @@ def do_classification(settings_tuple, noise_classifier, cross_validator, images)
         y_dataset.append('salt-pepper')
 
     print("Training with Sigma: {}/255, Cutoff Frequency: {}, a: {}, b: {}".format(sigma, cutoff, a, b))
-    noise_classifier = NoiseClassifier.NoiseTypePredictor(X_dataset, y_dataset, cross_validator)
+    noise_classifier = NoiseTypePredictor(X_dataset, y_dataset, cross_validator)
     test_y_all, pred_y_all = noise_classifier.begin_cross_validation()
     f1 = f1_score(test_y_all, pred_y_all, labels=['gaussian', 'speckle', 'salt-pepper'])
     print("Completed with F1: {} , Sigma: {}, Cutoff freq: {}, a: {}, b: {}")
@@ -53,7 +57,7 @@ def tune_noise_classifier():
 
     print("Image dataset loaded, loaded {} images".format(len(images)))
 
-    noise_classifier = NoiseClassifier.NoiseClassifier()
+    noise_classifier = NoiseClassifier()
     cross_validator = dataset.get_cross_validator()
 
     bm3d_sigma = [10, 30, 40, 50]
