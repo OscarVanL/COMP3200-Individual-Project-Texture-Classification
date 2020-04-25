@@ -18,8 +18,9 @@ def convert_uint8_image_float32(image: np.ndarray):
     """
     Converts a uint8 greyscale image_scaled (in range [0, 255]) to float32 in range [-1, 1] (unit variance).
     """
-    image = image.astype(np.float32)
-    norm_image = cv2.normalize(image, None, alpha=-1, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+    norm_image = np.copy(image)
+    norm_image = norm_image.astype(np.float32)
+    norm_image = cv2.normalize(norm_image, None, alpha=-1, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
     norm_image.astype(np.float32)
     return norm_image
 
@@ -30,12 +31,13 @@ def scale_uint8_image_float32(image):
     This gives it the range [-1, 1] and a mean of 0.
     """
     # Convert to float32
-    image = image.astype(np.float32)
+    scaled_img = np.copy(image)
+    scaled_img = scaled_img.astype(np.float32)
     # Normalise image_scaled to zero-mean
-    image -= image.mean()
+    scaled_img -= image.mean()
 
     # Convert uint8 image_scaled to float32 in range [-1, 1] (unit variance)
-    scaled_img = convert_uint8_image_float32(image)
+    scaled_img = convert_uint8_image_float32(scaled_img)
     return scaled_img
 
 
@@ -108,4 +110,7 @@ def add_speckle_noise_numba(image, var):
     return image + (image * gauss * var)
 
 def add_speckle_noise_skimage(image, var):
-    return random_noise(image, mode='speckle', clip=True, var=var)
+    # For some reason, speckle noise does not apply properly in range [-1, 1]...
+    norm_image = cv2.normalize(image, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+    noisy_image = random_noise(norm_image, mode='speckle', clip=True, var=var)
+    return cv2.normalize(noisy_image, None, alpha=-1, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
