@@ -64,8 +64,7 @@ class BM3DELBP(ImageProcessorInterface):
                 image.data = None  # Unassign image data as it's no longer needed
                 if GlobalConfig.get('debug'):
                     print("Image featurevector loaded from file")
-
-            except IOError:
+            except (IOError, ValueError):
                 if GlobalConfig.get('debug'):
                     print("Processing image", image.name)
                 image.featurevector = self.describe(image.data, test_image=False)
@@ -95,7 +94,7 @@ class BM3DELBP(ImageProcessorInterface):
                 image.test_data = None
                 if GlobalConfig.get('debug'):
                     print("Image featurevector loaded from file")
-            except IOError:
+            except (IOError, ValueError):
                 if GlobalConfig.get('debug'):
                     print("Processing image", image.name)
                 # Perform appropriate filter
@@ -146,7 +145,7 @@ class BM3DELBP(ImageProcessorInterface):
     def apply_filter(self, image_data, image_name, noise_prediction):
         if noise_prediction == 'gaussian':
             # Apply BM3D filter
-            image_filtered = SharedFunctions.bm3d_filter(image_data)
+            image_filtered = SharedFunctions.bm3d_filter(image_data, 50/255)
         elif noise_prediction == 'speckle':
             # Establish connection to MATLAB Engine for SAR-BM3D filter
             sar_bm3d = SARBM3D.SARBM3DFilter()

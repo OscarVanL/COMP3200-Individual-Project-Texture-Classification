@@ -196,6 +196,8 @@ def homomorphic_filter(image, cutoff_freq=0.2, a=0.5, b=2.0):
         U, V = np.meshgrid(range(I_fft.shape[0]), range(I_fft.shape[1]), sparse=False, indexing='ij')
     Duv = (U - P) ** 2 + (V - Q) ** 2
     H = np.exp((-Duv / (2 * cutoff_freq ** 2)))
+
+    # Obtain high-pass filter by taking 1 and subtracting the low pass filter.
     H = 1 - H
 
     # Apply filter on frequency domain then take the image back to spatial domain

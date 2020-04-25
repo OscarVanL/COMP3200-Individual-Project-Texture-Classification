@@ -299,7 +299,7 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
 
-    except IOError:
+    except (IOError, ValueError):
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         image.featurevector = algorithm.describe(image, test_image=False)
@@ -323,7 +323,7 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
             if GlobalConfig.get('debug'):
                 print("Noisy Image featurevector loaded from file")
 
-        except IOError:
+        except (IOError, ValueError):
             if GlobalConfig.get('debug'):
                 print("Processing image", image.name)
             image.test_featurevector = algorithm.describe(image, test_image=True)
@@ -365,7 +365,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         new_image.gauss_10_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
-    except IOError:
+    except (IOError, ValueError):
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         new_image.generate_gauss_10(noise_classifier)
@@ -386,7 +386,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         new_image.gauss_25_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
-    except IOError:
+    except (IOError, ValueError):
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         new_image.generate_gauss_25(noise_classifier)
@@ -407,7 +407,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         new_image.speckle_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
-    except IOError:
+    except (IOError, ValueError):
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         new_image.generate_speckle(noise_classifier, 0.02)
@@ -428,7 +428,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         new_image.salt_pepper_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
-    except IOError:
+    except (IOError, ValueError):
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         new_image.generate_salt_pepper_002(noise_classifier)
@@ -448,7 +448,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         new_image.test_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
-    except IOError:
+    except (IOError, ValueError):
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         if new_image.test_data is None:
