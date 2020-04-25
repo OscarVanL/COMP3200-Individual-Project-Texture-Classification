@@ -170,7 +170,7 @@ def bm3d_filter(image, sigma_psd=50/255):
 
 
 @nb.njit('float64[:,:](uint8[:,:], float32, float32, float32)')
-def homomorphic_filter(image, cutoff_freq=0.2, a=0.5, b=2.0):
+def homomorphic_filter(image, cutoff_freq=10, a=0.75, b=1.0):
     """
     Performs homomorphic filter on image using gaussian high-frequency filter
     Implementation is adapted from https://github.com/glasgio/homomorphic-filter

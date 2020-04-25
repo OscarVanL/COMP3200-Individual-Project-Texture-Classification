@@ -84,6 +84,10 @@ class KylbergTextures:
             if GlobalConfig.get('rotate'):
                 # Get paths for all images ending with r000.png (unrotated)
                 unrotated_paths = glob.glob(os.path.join(self.KYLBERG_DIR, cat, "") + "*r000.png")
+                # Reduce to data_ratio if fewer images are desired
+                imgs_to_load = int(len(unrotated_paths) * self.data_ratio)
+                unrotated_paths = unrotated_paths[:imgs_to_load]
+
                 # Load the unrotated image, then find all 12 rotated variants and set these as a parameter
                 for unrotated_img_path in unrotated_paths:
                     main_img = self.load_image(unrotated_img_path)
@@ -96,6 +100,9 @@ class KylbergTextures:
             else:
                 # Get paths of all images in this label
                 img_paths = glob.glob(os.path.join(self.KYLBERG_DIR, cat, "") + "*.png")
+                # Crop img_paths of data_ratio desires fewer images.
+                imgs_to_load = int(len(img_paths)*self.data_ratio)
+                img_paths = img_paths[:imgs_to_load]
                 for path in img_paths:
                     images.append(self.load_image(path))
 

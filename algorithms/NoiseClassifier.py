@@ -35,7 +35,7 @@ class NoiseClassifier(ImageProcessorInterface):
     def get_outdir(self, noisy_image: bool, scaled_image: bool):
         return "scale-{}".format(int(GlobalConfig.get('scale') * 100))
 
-    def describe(self, image, test_image: bool):
+    def describe(self, image, test_image: bool, sigma_psd=70/255, cutoff_freq=10, a=0.75, b=1.0):
         if isinstance(image, DatasetManager.Image):
             if test_image:
                 image_data = image.test_data
@@ -64,11 +64,10 @@ class NoiseClassifier(ImageProcessorInterface):
 
         if self.save_img:
             if isinstance(image, DatasetManager.Image):
-                # Todo: Uncomment
-                # GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(image_bm3d_filtered),
-                #                              os.path.join('BM3DELBP', 'NoiseClassifier', 'Filtered Images'),
-                #                              '{}-{}-{}-BM3D-filtered.png'.format(image.name, image.test_noise,
-                #                                                                  image.test_noise_val))
+                GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(image_bm3d_filtered),
+                                             os.path.join('BM3DELBP', 'NoiseClassifier', 'Filtered Images'),
+                                             '{}-{}-{}-BM3D-filtered.png'.format(image.name, image.test_noise,
+                                                                                 image.test_noise_val))
                 GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(image_homomorphic_filtered),
                                              os.path.join('BM3DELBP', 'NoiseClassifier', 'Filtered Images'),
                                              '{}-{}-{}-homomorphic-filtered-cutoff_{}-a_{}-b_{}.png'.format(image.name,
@@ -76,14 +75,14 @@ class NoiseClassifier(ImageProcessorInterface):
                                                                                                             image.test_noise_val,
                                                                                                             cutoff, a,
                                                                                                             b))
-                # GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(image_median_filtered),
-                #                              os.path.join('BM3DELBP', 'NoiseClassifier', 'Filtered Images'),
-                #                              '{}-{}-{}-median-filtered.png'.format(image.name, image.test_noise,
-                #                                                                    image.test_noise_val))
-                # GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(bm3d_noise),
-                #                              os.path.join('BM3DELBP', 'NoiseClassifier', 'Noise Estimates'),
-                #                              '{}-{}-{}-BM3D-noise-estimate.png'.format(image.name, image.test_noise,
-                #                                                                        image.test_noise_val))
+                GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(image_median_filtered),
+                                             os.path.join('BM3DELBP', 'NoiseClassifier', 'Filtered Images'),
+                                             '{}-{}-{}-median-filtered.png'.format(image.name, image.test_noise,
+                                                                                   image.test_noise_val))
+                GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(bm3d_noise),
+                                             os.path.join('BM3DELBP', 'NoiseClassifier', 'Noise Estimates'),
+                                             '{}-{}-{}-BM3D-noise-estimate.png'.format(image.name, image.test_noise,
+                                                                                       image.test_noise_val))
                 GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(homomorphic_noise),
                                              os.path.join('BM3DELBP', 'NoiseClassifier', 'Noise Estimates'),
                                              '{}-{}-{}-homomorphic-filtered-cutoff_{}-a_{}-b_{}.png'.format(image.name,
@@ -91,10 +90,10 @@ class NoiseClassifier(ImageProcessorInterface):
                                                                                                             image.test_noise_val,
                                                                                                             cutoff, a,
                                                                                                             b))
-                # GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(median_noise),
-                #                              os.path.join('BM3DELBP', 'NoiseClassifier', 'Noise Estimates'),
-                #                              '{}-{}-{}-median-noise-estimate.png'.format(image.name, image.test_noise,
-                #                                                                          image.test_noise_val))
+                GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(median_noise),
+                                             os.path.join('BM3DELBP', 'NoiseClassifier', 'Noise Estimates'),
+                                             '{}-{}-{}-median-noise-estimate.png'.format(image.name, image.test_noise,
+                                                                                         image.test_noise_val))
             else:
                 raise ValueError('save_img set but not passed as DatasetManager.Image or BM3DELBPImage')
 
@@ -129,8 +128,15 @@ class NoiseTypePredictor(NoiseClassifierInterface):
         * This can be validated against the BM3DELBP test set.
     """
 
-    def __init__(self, dataset: List[DatasetManager.Image], cross_validator):
-        super().__init__(dataset, cross_validator)
+    # Todo: Restore normal initialiser
+    # def __init__(self, dataset: List[DatasetManager.Image], cross_validator):
+    #     super().__init__(dataset, cross_validator)
+    #     self.classifier = None
+
+    def __init__(self, X_dataset, y_dataset, cross_validator):
+        #super().__init__(dataset, cross_validator)
+        self.X_dataset = X_dataset
+        self.y_dataset = y_dataset
         self.classifier = None
 
     def begin_cross_validation(self):
