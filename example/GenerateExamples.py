@@ -20,7 +20,7 @@ class GenerateExamples:
         image_scaled = ImageUtils.scale_uint8_image_float32(image_uint8)
         image_gauss_10 = ImageUtils.add_gaussian_noise_skimage(image_scaled, 10)
         image_gauss_25 = ImageUtils.add_gaussian_noise_skimage(image_scaled, 25)
-        image_speckle_004 = ImageUtils.add_speckle_noise_skimage(image_scaled, 0.04)
+        image_speckle_002 = ImageUtils.add_speckle_noise_skimage(image_scaled, 0.02)
         image_salt_pepper = ImageUtils.add_salt_pepper_noise_skimage(image_scaled, 0.02)
         image_label = path.split(os.sep)[-1].partition('-')[0]
         # Generate different permutations of this sample image
@@ -31,8 +31,8 @@ class GenerateExamples:
         self.image_gauss_10.test_noise='gaussian'; self.image_gauss_10.test_noise_val=10
         self.image_gauss_25 = DatasetManager.Image(image_gauss_25, image_name, image_label)
         self.image_gauss_25.test_noise = 'gaussian'; self.image_gauss_25.test_noise_val = 25
-        self.image_speckle = DatasetManager.Image(image_speckle_004, image_name, image_label)
-        self.image_speckle.test_noise = 'speckle'; self.image_speckle.test_noise_val = 0.04
+        self.image_speckle = DatasetManager.Image(image_speckle_002, image_name, image_label)
+        self.image_speckle.test_noise = 'speckle'; self.image_speckle.test_noise_val = 0.02
         self.image_salt_pepper_002 = DatasetManager.Image(image_salt_pepper, image_name, image_label)
         self.image_salt_pepper_002.test_noise = 'salt-pepper'; self.image_salt_pepper_002.noise_val = 0.02
         self.path = os.path.join(GlobalConfig.get('CWD'), 'example')
@@ -51,7 +51,7 @@ class GenerateExamples:
         write_image(ImageUtils.convert_float32_image_uint8(self.image_gauss_25.test_data),
                          'Noise Applied', self.image_scaled.name + '-Gaussian-Sigma-25.png')
         write_image(ImageUtils.convert_float32_image_uint8(self.image_speckle.test_data),
-                         'Noise Applied', self.image_scaled.name + '-Speckle-Var-0.04.png')
+                         'Noise Applied', self.image_scaled.name + '-Speckle-Var-0.02.png')
         write_image(ImageUtils.convert_float32_image_uint8(self.image_salt_pepper_002.test_data),
                          'Noise Applied', self.image_scaled.name + '-Salt-Pepper-2%.png')
         print("Finished producing Noisy Image examples")

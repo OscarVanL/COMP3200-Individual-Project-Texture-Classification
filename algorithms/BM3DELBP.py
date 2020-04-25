@@ -195,9 +195,9 @@ class BM3DELBPImage(DatasetManager.Image):
         self.gauss_25_prediction = None
         self.gauss_25_bm3d_featurevector = None
 
-        self.speckle_004_noise_featurevector = None
-        self.speckle_004_prediction = None
-        self.speckle_004_bm3d_featurevector = None
+        self.speckle_noise_featurevector = None
+        self.speckle_prediction = None
+        self.speckle_bm3d_featurevector = None
 
         self.salt_pepper_002_noise_featurevector = None
         self.salt_pepper_002_prediction = None
@@ -216,9 +216,9 @@ class BM3DELBPImage(DatasetManager.Image):
         gauss_25_data = ImageUtils.add_gaussian_noise_skimage(self.data, 25)
         self.gauss_25_noise_featurevector = noise_classifier.describe(gauss_25_data, test_image=False)
 
-    def generate_speckle(self, noise_classifier, var=0.04):
+    def generate_speckle(self, noise_classifier, var=0.02):
         speckle_data = ImageUtils.add_speckle_noise_skimage(self.data, var)
-        self.speckle_004_noise_featurevector = noise_classifier.describe(speckle_data, test_image=False)
+        self.speckle_noise_featurevector = noise_classifier.describe(speckle_data, test_image=False)
 
     def generate_salt_pepper_002(self, noise_classifier):
         salt_pepper_002_data = ImageUtils.add_salt_pepper_noise_skimage(self.data, 0.02)
