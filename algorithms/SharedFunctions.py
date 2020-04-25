@@ -188,7 +188,7 @@ def homomorphic_filter(image, cutoff_freq=0.2, a=0.5, b=2.0):
     with nb.objmode(I_fft='complex128[:,:]'):
         I_fft = np.fft.fft2(I_log)
 
-    # Apply Gaussian Filter
+    # Apply Gaussian Mask
     P = I_fft.shape[0] / 2
     Q = I_fft.shape[1] / 2
     with nb.objmode(U='int32[:,:]', V='int32[:,:]'):
