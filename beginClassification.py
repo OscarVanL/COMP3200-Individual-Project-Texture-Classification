@@ -307,8 +307,11 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
         image.data = None
 
         # Make output folder if it doesn't exist
-        if not (os.path.exists(train_out_cat)):
+        try:
             os.makedirs(train_out_cat)
+        except FileExistsError:
+            pass
+                
 
         np.save(train_out_file, image.featurevector)
 
@@ -331,8 +334,10 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
             image.test_data = None
 
             # Make output folder if it doesn't exist
-            if not (os.path.exists(test_out_cat)):
+            try:
                 os.makedirs(test_out_cat)
+            except FileExistsError:
+                pass
 
             np.save(test_out_file, image.test_featurevector)
 
