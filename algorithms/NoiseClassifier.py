@@ -128,16 +128,15 @@ class NoiseTypePredictor(NoiseClassifierInterface):
         * This can be validated against the BM3DELBP test set.
     """
 
-    # Todo: Restore normal initialiser
-    # def __init__(self, dataset: List[DatasetManager.Image], cross_validator):
-    #     super().__init__(dataset, cross_validator)
-    #     self.classifier = None
-
-    def __init__(self, X_dataset, y_dataset, cross_validator):
-        #super().__init__(dataset, cross_validator)
-        self.X_dataset = X_dataset
-        self.y_dataset = y_dataset
+    def __init__(self, dataset: List[DatasetManager.Image], cross_validator):
+        super().__init__(dataset, cross_validator)
         self.classifier = None
+
+    # def __init__(self, X_dataset, y_dataset, cross_validator):
+    #     #super().__init__(dataset, cross_validator)
+    #     self.X_dataset = X_dataset
+    #     self.y_dataset = y_dataset
+    #     self.classifier = None
 
     def begin_cross_validation(self):
         """

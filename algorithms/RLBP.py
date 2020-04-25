@@ -76,7 +76,6 @@ class RobustLBPPredictor(ImageClassifierInterface):
     A Machine Learning predictor for RLBP descriptors.
     """
 
-    # Todo: Implement predictor
     def __init__(self, dataset: List[DatasetManager.Image], cross_validator):
         super().__init__(dataset, cross_validator)
 
