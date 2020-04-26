@@ -45,7 +45,7 @@ class NoiseClassifier(ImageProcessorInterface):
             else:
                 image_data = image.data
         else:
-            image_data = image
+            image_data = image.copy()  # Copy its contents, better safe than sorry.
 
         # Perform BM3D Filter
         image_bm3d_filtered = SharedFunctions.bm3d_filter(image_data, 70/255)

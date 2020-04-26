@@ -189,25 +189,24 @@ class BM3DELBPImage(DatasetManager.Image):
         self.test_noise_featurevector = None  # Featurevector for the noise identifier generated on test image
         self.noise_prediction = None  # Prediction Noise Classifier made for original image data
 
+        self.no_noise_featurevector = None
+        self.no_noise_prediction = None
         self.gauss_10_noise_featurevector = None  # Featurevector for the noise identifier
         self.gauss_10_prediction = None  # When the Noise Classifier has predicted the noise type, store it here
-        self.gauss_10_bm3d_featurevector = None
-
         self.gauss_25_noise_featurevector = None
         self.gauss_25_prediction = None
-        self.gauss_25_bm3d_featurevector = None
-
         self.speckle_noise_featurevector = None
         self.speckle_prediction = None
-        self.speckle_bm3d_featurevector = None
-
         self.salt_pepper_002_noise_featurevector = None
         self.salt_pepper_002_prediction = None
-        self.salt_pepper_002_bm3d_featurevector = None
 
     # Generate the noise featurevector for the test image to predict with the classifier
     def generate_noise_featurevector(self, noise_classifier):
         self.test_noise_featurevector = noise_classifier.describe(self.test_data, test_image=True)
+
+    # Generate noise featurevectors on image with no noise applied to detect non-noisy images
+    def generate_normal_featurevector(self, noise_clasifier):
+        self.no_noise_featurevector = noise_clasifier.describe(self.data, test_image=False)
 
     # Generate noise on the non-test image (no transformations) to train the classifier with
     def generate_gauss_10(self, noise_classifier):

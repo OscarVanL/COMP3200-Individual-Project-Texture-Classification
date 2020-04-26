@@ -131,6 +131,8 @@ class NoiseClassifierInterface:
         self.dataset_y = []
         for image in dataset:
             # Todo: Figure out why the cross validator was not giving balanced classes.
+            self.dataset_X.append(image.no_noise_featurevector)
+            self.dataset_y.append('no-noise')
             self.dataset_X.append(image.gauss_10_noise_featurevector)
             self.dataset_y.append('gaussian')
             #self.dataset_X.append(image.gauss_25_noise_featurevector)

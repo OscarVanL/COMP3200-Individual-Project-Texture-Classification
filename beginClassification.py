@@ -366,12 +366,32 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
     new_image = BM3DELBP.BM3DELBPImage(image)
     noise_classifier = NoiseClassifier.NoiseClassifier()
 
-    # Load / generate Gussian sigma 10 noise featurevector
-    out_cat = os.path.join(out_dir, 'gaussian-10', image.label)
-    out_noisy_image = os.path.join(out_cat, '{}-image.npy'.format(image.name))
+    # Generate non-noisy image noise featurevector
+    out_cat = os.path.join(out_dir, 'no-noise', image.label)
     out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
     if GlobalConfig.get('debug'):
-        print("Read/Write to", out_noisy_image, "and", out_featurevector)
+        print("Read/Write to", out_featurevector)
+    try:
+        # Try loading serialised featurevectors if it's ran before already
+        new_image.no_noise_featurevector= np.load(out_featurevector, allow_pickle=True)
+        if GlobalConfig.get('debug'):
+            print("Image featurevector loaded from file")
+    except (IOError, ValueError):
+        if GlobalConfig.get('debug'):
+            print("Processing iamge", image.name)
+        new_image.generate_normal_featurevector(noise_classifier)
+        # Make output folder if it doesn't exist
+        try:
+            os.makedirs(out_cat)
+        except FileExistsError:
+            pass
+        np.save(out_featurevector, new_image.no_noise_featurevector)
+
+    # Load / generate Gussian sigma 10 noise featurevector
+    out_cat = os.path.join(out_dir, 'gaussian-10', image.label)
+    out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
+    if GlobalConfig.get('debug'):
+        print("Read/Write to", out_featurevector)
     try:
         new_image.gauss_10_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
@@ -380,7 +400,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         new_image.generate_gauss_10(noise_classifier)
-        # Make output folder if it doesn't exist
         try:
             os.makedirs(out_cat)
         except FileExistsError:
@@ -389,10 +408,9 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
 
     # Load / generate Gaussian sigma 25 noise featurevector
     out_cat = os.path.join(out_dir, 'gaussian-25', image.label)
-    out_noisy_image = os.path.join(out_cat, '{}-image.npy'.format(image.name))
     out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
     if GlobalConfig.get('debug'):
-        print("Read/Write to", out_noisy_image, "and", out_featurevector)
+        print("Read/Write to", out_featurevector)
     try:
         new_image.gauss_25_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
@@ -401,7 +419,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         new_image.generate_gauss_25(noise_classifier)
-        # Make output folder if it doesn't exist
         try:
             os.makedirs(out_cat)
         except FileExistsError:
@@ -410,10 +427,9 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
 
     # Load / generate Speckle 4% noise featurevector
     out_cat = os.path.join(out_dir, 'speckle-002', image.label)
-    out_noisy_image = os.path.join(out_cat, '{}-image.npy'.format(image.name))
     out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
     if GlobalConfig.get('debug'):
-        print("Read/Write to", out_noisy_image, "and", out_featurevector)
+        print("Read/Write to", out_featurevector)
     try:
         new_image.speckle_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
@@ -422,7 +438,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         new_image.generate_speckle(noise_classifier, 0.02)
-        # Make output folder if it doesn't exist
         try:
             os.makedirs(out_cat)
         except FileExistsError:
@@ -431,10 +446,9 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
 
     # Load / generate Salt and Pepper 2% noise featurevector
     out_cat = os.path.join(out_dir, 'salt-pepper-002', image.label)
-    out_noisy_image = os.path.join(out_cat, '{}-image.npy'.format(image.name))
     out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
     if GlobalConfig.get('debug'):
-        print("Read/Write to", out_noisy_image, "and", out_featurevector)
+        print("Read/Write to", out_featurevector)
     try:
         new_image.salt_pepper_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
@@ -443,7 +457,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         new_image.generate_salt_pepper_002(noise_classifier)
-        # Make output folder if it doesn't exist
         try:
             os.makedirs(out_cat)
         except FileExistsError:
@@ -454,7 +467,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
     out_cat = os.path.join(test_out_dir, image.label)
     out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
     if GlobalConfig.get('debug'):
-        print("Read/Write to", out_noisy_image, "and", out_featurevector)
+        print("Read/Write to", out_featurevector)
     try:
         new_image.test_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
@@ -465,7 +478,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         if new_image.test_data is None:
             raise ValueError('Image.test_data has not been assigned')
         new_image.generate_noise_featurevector(noise_classifier)
-        # Make output folder if it doesn't exist
         try:
             os.makedirs(out_cat)
         except FileExistsError:
