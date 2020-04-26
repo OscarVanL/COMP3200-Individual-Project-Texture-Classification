@@ -136,7 +136,7 @@ class NoiseClassifierInterface:
             self.dataset_y.append('gaussian')
             self.dataset_X.append(image.gauss_25_noise_featurevector)
             self.dataset_y.append('gaussian')
-            self.dataset_X.append(image.speckle_noise_featurevector)
+            self.dataset_X.append(image.speckle_002_noise_featurevector)
             self.dataset_y.append('speckle')
             self.dataset_X.append(image.speckle_004_noise_featurevector)
             self.dataset_y.append('speckle')
