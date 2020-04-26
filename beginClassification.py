@@ -34,9 +34,10 @@ Args:
 -k or --folds : Number of cross folds to complete
 -r or --rotations : Whether to use rotated textures for the test images.
 -n or --noise : Which type of noise to apply to test textures ('gaussian', 'speckle', 'salt-pepper')
--i or --intensity : How much noise to apply to test textures (Sigma / Variance / Ratio)
+-i or --noise-intensity : How much noise to apply to test textures (Sigma / Variance / Ratio)
 -m or --multiprocess : Whether to use multi process featurevector generation
 -e or --example : Generate example images used in dissertation report
+--noise-train : Apply the noise to the train dataset too
 --ecs : If running on an ECS Lab machine, load the dataset from C:\Local instead of the CWD.
 --debug : Whether to run in debug mode (uses a reduced dataset to speed up execution, prints more stuff)
 """
@@ -47,7 +48,7 @@ def main():
     argList = sys.argv[1:]
     shortArg = 'a:d:t:s:S:k:rn:i:me'
     longArg = ['algorithm=', 'dataset=', 'train-ratio=', 'scale=', 'test-scale=', 'folds=', 'rotations', 'noise=', 'noise-intensity=', 'multiprocess', 'example',
-               'ecs', 'debug']
+               'noise-train', 'ecs', 'debug']
 
     valid_algorithms = ['RLBP', 'MRLBP', 'MRELBP', 'BM3DELBP', 'NoiseClassifier']
     valid_datasets = ['kylberg']
@@ -110,6 +111,9 @@ def main():
             elif arg in ('-e', '--example'):
                 print('Generating algorithm example image_scaled')
                 GlobalConfig.set("examples", True)
+            elif arg == '--noise-train':
+                print("Applying noise to the training dataset as well as the test dataset")
+                GlobalConfig.set('train_noise', True)
             elif arg == '--ecs':
                 print("Loading dataset from C:\Local")
                 GlobalConfig.set('ECS', True)
@@ -184,6 +188,7 @@ def main():
     else:
         scaled_image = False
     test_out_dir = os.path.join(out_folder, algorithm.get_outdir(noisy_image, scaled_image))
+
     # Out path for noise classifier
     noise_out_dir = os.path.join(GlobalConfig.get('CWD'), 'out', 'NoiseClassifier', dataset_folder,
                                  "scale-{}".format(int(GlobalConfig.get('scale') * 100)))
@@ -292,18 +297,20 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
     if GlobalConfig.get('debug'):
         print("Read/Write train file to", train_out_file)
     try:
-        image.featurevector = np.load(train_out_file, allow_pickle=True)
-        # Remove image data from memory, we don't need it anymore.
-        image.data = None
+        if GlobalConfig.get('train_noise'):
+            image.featurevector = algorithm.describe(image, test_image=False)
+            image.data = None
+        else:
+            image.featurevector = np.load(train_out_file, allow_pickle=True)
+            image.data = None
 
-        if GlobalConfig.get('debug'):
-            print("Image featurevector loaded from file")
+            if GlobalConfig.get('debug'):
+                print("Image featurevector loaded from file")
 
     except (IOError, ValueError):
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
         image.featurevector = algorithm.describe(image, test_image=False)
-        # Remove image data from memory, we don't need it anymore.
         image.data = None
 
         # Make output folder if it doesn't exist
@@ -311,7 +318,6 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
             os.makedirs(train_out_cat)
         except FileExistsError:
             pass
-                
 
         np.save(train_out_file, image.featurevector)
 

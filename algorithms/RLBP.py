@@ -44,7 +44,12 @@ class RobustLBP(ImageProcessorInterface):
         else:
             image_scale = int(GlobalConfig.get('scale') * 100)
 
-        return "scale-{}_noise-{}_noiseval-{}".format(image_scale, noise_type, noise_val)
+        if GlobalConfig.get('train_noise'):
+            return "scale-{}_noise-{}_noiseval-{}-trainnoise".format(image_scale, noise_type, noise_val)
+        else:
+            return "scale-{}_noise-{}_noiseval-{}".format(image_scale, noise_type, noise_val)
+
+
 
     def describe(self, image, test_image: bool):
         if isinstance(image, DatasetManager.Image):
@@ -145,7 +150,12 @@ class MultiresolutionLBP(ImageProcessorInterface):
         else:
             image_scale = int(GlobalConfig.get('scale') * 100)
 
-        return "scale-{}_noise-{}_noiseval-{}_p-{}_r-{}".format(image_scale, noise_type, noise_val, self.p, self.r)
+        if GlobalConfig.get('train_noise'):
+            return "scale-{}_noise-{}_noiseval-{}_p-{}_r-{}-trainnoise".format(image_scale, noise_type, noise_val, self.p, self.r)
+        else:
+            return "scale-{}_noise-{}_noiseval-{}_p-{}_r-{}".format(image_scale, noise_type, noise_val, self.p, self.r)
+
+
 
     def describe(self, image, test_image: bool):
         if isinstance(image, DatasetManager.Image):

@@ -139,9 +139,7 @@ class KylbergTextures:
                                    fx=GlobalConfig.get('test_scale'),
                                    fy=GlobalConfig.get('test_scale'))
         else:
-            test_data = cv2.resize(cv2.imread(path, cv2.IMREAD_GRAYSCALE), (0, 0),
-                                   fx=GlobalConfig.get('scale'),
-                                   fy=GlobalConfig.get('scale'))
+            test_data = train_data.copy()  # Make a copy so that later transformations on test data don't cause issues
 
         algo = GlobalConfig.get('algorithm')
         # Convert image from uint8 to float32
@@ -158,10 +156,16 @@ class KylbergTextures:
         if GlobalConfig.get('noise') is None:
             pass
         elif GlobalConfig.get('noise') == 'gaussian':
+            if GlobalConfig.get('train_noise'):
+                train_data = ImageUtils.add_gaussian_noise_skimage(train_data, GlobalConfig.get('noise_val'))
             test_data = ImageUtils.add_gaussian_noise_skimage(test_data, GlobalConfig.get('noise_val'))
         elif GlobalConfig.get('noise') == 'speckle':
+            if GlobalConfig.get('train_noise'):
+                train_data = ImageUtils.add_speckle_noise_skimage(train_data, GlobalConfig.get('noise_val'))
             test_data = ImageUtils.add_speckle_noise_skimage(test_data, GlobalConfig.get('noise_val'))
         elif GlobalConfig.get('noise') == 'salt-pepper':
+            if GlobalConfig.get('train_noise'):
+                train_data = ImageUtils.add_salt_pepper_noise_skimage(train_data, GlobalConfig.get('noise_val'))
             test_data = ImageUtils.add_salt_pepper_noise_skimage(test_data, GlobalConfig.get('noise_val'))
         else:
             raise ValueError('Invalid image_scaled noise type defined')

@@ -80,8 +80,14 @@ class MedianRobustExtendedLBP(ImageProcessorInterface):
         else:
             image_scale = int(GlobalConfig.get('scale') * 100)
 
-        return "scale-{}_noise-{}_noiseval-{}_p-{}_wc-{}_r-{}_wr-{}".format(image_scale, noise_type, noise_val,
-                                                                            self.p, self.w_c, self.r1, self.w_r1)
+        if GlobalConfig.get('train_noise'):
+            return "scale-{}_noise-{}_noiseval-{}_p-{}_wc-{}_r-{}_wr-{}-trainnoise".format(image_scale, noise_type, noise_val,
+                                                                                self.p, self.w_c, self.r1, self.w_r1)
+        else:
+            return "scale-{}_noise-{}_noiseval-{}_p-{}_wc-{}_r-{}_wr-{}".format(image_scale, noise_type, noise_val,
+                                                                                self.p, self.w_c, self.r1, self.w_r1)
+
+
 
     def describe(self, image, test_image: bool):
         """

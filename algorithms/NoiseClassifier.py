@@ -33,7 +33,10 @@ class NoiseClassifier(ImageProcessorInterface):
         super().__init__(save_img)
 
     def get_outdir(self, noisy_image: bool, scaled_image: bool):
-        return "scale-{}".format(int(GlobalConfig.get('scale') * 100))
+        if GlobalConfig.get('train_noise'):
+            return "scale-{}-trainnoise".format(int(GlobalConfig.get('scale') * 100))
+        else:
+            return "scale-{}-trainnoise".format(int(GlobalConfig.get('scale') * 100))
 
     def describe(self, image, test_image: bool, sigma_psd=70/255, cutoff_freq=10, a=0.75, b=1.0):
         if isinstance(image, DatasetManager.Image):

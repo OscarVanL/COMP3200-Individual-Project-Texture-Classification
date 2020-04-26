@@ -39,7 +39,10 @@ class BM3DELBP(ImageProcessorInterface):
         else:
             image_scale = int(GlobalConfig.get('scale') * 100)
 
-        return "scale-{}_noise-{}_noiseval-{}".format(image_scale, noise_type, noise_val)
+        if GlobalConfig.get('train_noise'):
+            return "scale-{}_noise-{}_noiseval-{}-trainnoise".format(image_scale, noise_type, noise_val)
+        else:
+            return "scale-{}_noise-{}_noiseval-{}".format(image_scale, noise_type, noise_val)
 
     def describe_filter(self, image, test_image: bool, train_out_dir, test_out_dir):
         """
