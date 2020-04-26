@@ -246,7 +246,7 @@ def main():
     y_test, y_predicted = predictor.begin_cross_validation()
 
     if GlobalConfig.get('algorithm') == 'NoiseClassifier':
-        classes = ['gaussian', 'speckle', 'salt-pepper']
+        classes = ['no-noise', 'gaussian', 'speckle', 'salt-pepper']
     else:
         classes = kylberg.classes
 
