@@ -130,6 +130,9 @@ class NoiseClassifierInterface:
         self.dataset_X = []
         self.dataset_y = []
         for image in dataset:
+            # Add no-noise twice so that each class is equal in size.
+            self.dataset_X.append(image.no_noise_featurevector)
+            self.dataset_y.append('no-noise')
             self.dataset_X.append(image.no_noise_featurevector)
             self.dataset_y.append('no-noise')
             self.dataset_X.append(image.gauss_10_noise_featurevector)
