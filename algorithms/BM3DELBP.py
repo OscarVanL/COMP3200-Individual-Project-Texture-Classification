@@ -142,6 +142,8 @@ class BM3DELBP(ImageProcessorInterface):
             return 'SARBM3D'
         elif noise_prediction == 'salt-pepper':
             return 'median'
+        elif noise_prediction == 'no-noise':
+            return 'no-filter'
         else:
             raise ValueError('Noise prediction {} does not match expected values'.format(noise_prediction))
 
@@ -164,6 +166,8 @@ class BM3DELBP(ImageProcessorInterface):
             image_filtered = np.zeros(image_padded.shape, dtype=np.float32)
             SharedFunctions.median_filter(image_padded, 3, 1, image_filtered)
             image_filtered = image_filtered[1:-1, 1:-1]  # Remove padding now median filter done
+        elif noise_prediction == 'no-noise':
+            image_filtered = image_data.copy()
         else:
             raise ValueError('Noise prediction does not match expected values')
         return image_filtered
