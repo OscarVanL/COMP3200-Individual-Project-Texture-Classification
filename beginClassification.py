@@ -425,24 +425,43 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
             pass
         np.save(out_featurevector, new_image.gauss_25_noise_featurevector)
 
-    # Load / generate Speckle 4% noise featurevector
+    # Load / generate Speckle var=0.02 noise featurevector
     out_cat = os.path.join(out_dir, 'speckle-002', image.label)
     out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
     if GlobalConfig.get('debug'):
         print("Read/Write to", out_featurevector)
     try:
-        new_image.speckle_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
+        new_image.speckle_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
             print("Image featurevector loaded from file")
     except (IOError, ValueError):
         if GlobalConfig.get('debug'):
             print("Processing image", image.name)
-        new_image.generate_speckle(noise_classifier, 0.02)
+        new_image.generate_speckle_002(noise_classifier)
         try:
             os.makedirs(out_cat)
         except FileExistsError:
             pass
-        np.save(out_featurevector, new_image.speckle_noise_featurevector)
+        np.save(out_featurevector, new_image.speckle_002_noise_featurevector)
+
+    # Load / generate Speckle var=0.04 noise featurevector
+    out_cat = os.path.join(out_dir, 'speckle-004', image.label)
+    out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
+    if GlobalConfig.get('debug'):
+        print("Read/Write to", out_featurevector)
+    try:
+        new_image.speckle_004_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
+        if GlobalConfig.get('debug'):
+            print("Image featurevector loaded from file")
+    except (IOError, ValueError):
+        if GlobalConfig.get('debug'):
+            print("Processing image", image.name)
+        new_image.generate_speckle_004(noise_classifier)
+        try:
+            os.makedirs(out_cat)
+        except FileExistsError:
+            pass
+        np.save(out_featurevector, new_image.speckle_004_noise_featurevector)
 
     # Load / generate Salt and Pepper 2% noise featurevector
     out_cat = os.path.join(out_dir, 'salt-pepper-002', image.label)
@@ -462,6 +481,25 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         except FileExistsError:
             pass
         np.save(out_featurevector, new_image.salt_pepper_002_noise_featurevector)
+
+    # Load / generate Salt and Pepper 4% noise featurevector
+    out_cat = os.path.join(out_dir, 'salt-pepper-004', image.label)
+    out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
+    if GlobalConfig.get('debug'):
+        print("Read/Write to", out_featurevector)
+    try:
+        new_image.salt_pepper_004_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
+        if GlobalConfig.get('debug'):
+            print("Image featurevector loaded from file")
+    except (IOError, ValueError):
+        if GlobalConfig.get('debug'):
+            print("Processing image", image.name)
+        new_image.generate_salt_pepper_004(noise_classifier)
+        try:
+            os.makedirs(out_cat)
+        except FileExistsError:
+            pass
+        np.save(out_featurevector, new_image.salt_pepper_004_noise_featurevector)
 
     # Load / generate featurevector on test image
     out_cat = os.path.join(test_out_dir, image.label)

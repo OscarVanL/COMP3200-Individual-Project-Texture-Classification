@@ -199,10 +199,14 @@ class BM3DELBPImage(DatasetManager.Image):
         self.gauss_10_prediction = None  # When the Noise Classifier has predicted the noise type, store it here
         self.gauss_25_noise_featurevector = None
         self.gauss_25_prediction = None
-        self.speckle_noise_featurevector = None
-        self.speckle_prediction = None
+        self.speckle_002_noise_featurevector = None
+        self.speckle_002_prediction = None
+        self.speckle_004_noise_featurevector = None
+        self.speckle_004_prediction = None
         self.salt_pepper_002_noise_featurevector = None
         self.salt_pepper_002_prediction = None
+        self.salt_pepper_004_noise_featurevector = None
+        self.salt_pepper_004_prediction = None
 
     # Generate the noise featurevector for the test image to predict with the classifier
     def generate_noise_featurevector(self, noise_classifier):
@@ -221,13 +225,21 @@ class BM3DELBPImage(DatasetManager.Image):
         gauss_25_data = ImageUtils.add_gaussian_noise_skimage(self.data, 25)
         self.gauss_25_noise_featurevector = noise_classifier.describe(gauss_25_data, test_image=False)
 
-    def generate_speckle(self, noise_classifier, var=0.02):
-        speckle_data = ImageUtils.add_speckle_noise_skimage(self.data, var)
-        self.speckle_noise_featurevector = noise_classifier.describe(speckle_data, test_image=False)
+    def generate_speckle_002(self, noise_classifier):
+        speckle_data = ImageUtils.add_speckle_noise_skimage(self.data, 0.02)
+        self.speckle_002_noise_featurevector = noise_classifier.describe(speckle_data, test_image=False)
+
+    def generate_speckle_004(self, noise_classifier):
+        speckle_data = ImageUtils.add_speckle_noise_skimage(self.data, 0.04)
+        self.speckle_004_noise_featurevector = noise_classifier.describe(speckle_data, test_image=False)
 
     def generate_salt_pepper_002(self, noise_classifier):
         salt_pepper_002_data = ImageUtils.add_salt_pepper_noise_skimage(self.data, 0.02)
         self.salt_pepper_002_noise_featurevector = noise_classifier.describe(salt_pepper_002_data, test_image=False)
+
+    def generate_salt_pepper_004(self, noise_classifier):
+        salt_pepper_004_data = ImageUtils.add_salt_pepper_noise_skimage(self.data, 0.04)
+        self.salt_pepper_004_noise_featurevector = noise_classifier.describe(salt_pepper_004_data, test_image=False)
 
 
 class BM3DELBPPredictor(ImageClassifierInterface):
