@@ -12,12 +12,12 @@ This allows us to test for transformational invariance.
 ### Installation:
 
 1. `git pull https://github.com/OscarVanL/COMP3200-Independent-Project`
-
 2. Download [Kylberg Texture Dataset]( http://www.cb.uu.se/~gustaf/texture/) 'Texture dataset *without* rotated patches' and unzip them to `data/kylberg`
 3. Download [Kylberg Texture Dataset]( http://www.cb.uu.se/~gustaf/texture/) 'Texture dataset *with* rotated patches' and unzip them to `data/kylberg-rotated`
 4. Download MATLAB executables for [SAR-BM3D filter v1.0](http://www.grip.unina.it/web-download.html?dir=JSROOT/SAR-BM3D) and unzip them to `algorithms/SARBM3D_v10_win64`. Note:  I have only tested this with the Windows 10 executables.
-5. Install MATLAB and install the [MATLAB Engine API for Python](https://uk.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html).
-6. Install dependencies `pip install requirements.txt`
+5. Install the Visual C++ 2010 Redistributable Package (x64) as described in SAR-BM3D's README.txt
+6. Install MATLAB and install the [MATLAB Engine API for Python](https://uk.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html).
+7. Install dependencies `pip install requirements.txt`
 
 ### Operation:
 

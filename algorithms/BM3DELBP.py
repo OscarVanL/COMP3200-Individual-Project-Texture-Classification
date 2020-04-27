@@ -158,8 +158,12 @@ class BM3DELBP(ImageProcessorInterface):
             sar_bm3d.connect_matlab()
             # Apply SAR-BM3D filter
             image_filtered = sar_bm3d.sar_bm3d_filter(image_data, image_name)
-            # Disconnect from MATLAB Engine
-            sar_bm3d.disconnect_matlab()
+            try:
+                # Disconnect from MATLAB Engine
+                sar_bm3d.disconnect_matlab()
+            except SystemError:
+                # If we try to disconnect matlab after it has already disconnected (eg: crashed) this throws an exception
+                pass
         elif noise_prediction == 'salt-pepper':
             # Apply Median filter. Padding is required for median filter.
             image_padded = pad(array=image_data, pad_width=1, mode='constant', constant_values=0)

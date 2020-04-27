@@ -228,8 +228,23 @@ class MedianRobustExtendedLBP(ImageProcessorInterface):
 
         lbp_ni = np.zeros((width, height), dtype=np.uint32)
         lbp_rd = np.zeros((width, height), dtype=np.uint32)
-        self.perform_ni_rd_thresholding(image, self.padding, r1, r2, r1_offset, r2_offset,
-                                        self.radial_angles, self.weights, lbp_ni, lbp_rd)
+        try:
+            self.perform_ni_rd_thresholding(image, self.padding, r1, r2, r1_offset, r2_offset,
+                                            self.radial_angles, self.weights, lbp_ni, lbp_rd)
+        except RuntimeWarning as e:
+            print(e)
+            print("RuntimeWarning in perform_ni_rd happened with the following arguments:")
+            print("image type:", type(image), image.dtype)
+            print("padding:", self.padding)
+            print("r1", r1)
+            print("r2", r2)
+            print("r1_offset", r1_offset)
+            print("r2_offset", r2_offset)
+            print("radial angles", self.radial_angles)
+            print("weights", self.weights)
+            print("lbp_ni", lbp_ni)
+            print("lbp_rd", lbp_rd)
+
 
         # Trim extra rows and columns
         lbp_ni = lbp_ni[:width-2 * self.padding, :height-2 * self.padding]
