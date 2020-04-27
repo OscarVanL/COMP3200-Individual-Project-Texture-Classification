@@ -246,7 +246,10 @@ def main():
     y_test, y_predicted = predictor.begin_cross_validation()
 
     if GlobalConfig.get('algorithm') == 'NoiseClassifier':
-        classes = ['no-noise', 'gaussian', 'speckle', 'salt-pepper']
+        if GlobalConfig.get('noise') is None:
+            classes = ['no-noise', 'gaussian', 'speckle', 'salt-pepper']
+        else:
+            classes = ['gaussian', 'speckle', 'salt-pepper']
     else:
         classes = kylberg.classes
 
@@ -366,26 +369,27 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
     new_image = BM3DELBP.BM3DELBPImage(image)
     noise_classifier = NoiseClassifier.NoiseClassifier()
 
-    # Generate non-noisy image noise featurevector
-    out_cat = os.path.join(out_dir, 'no-noise', image.label)
-    out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
-    if GlobalConfig.get('debug'):
-        print("Read/Write to", out_featurevector)
-    try:
-        # Try loading serialised featurevectors if it's ran before already
-        new_image.no_noise_featurevector= np.load(out_featurevector, allow_pickle=True)
+    if GlobalConfig.get('noise') is None:
+        # Generate non-noisy image noise featurevector
+        out_cat = os.path.join(out_dir, 'no-noise', image.label)
+        out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
         if GlobalConfig.get('debug'):
-            print("Image featurevector loaded from file")
-    except (IOError, ValueError):
-        if GlobalConfig.get('debug'):
-            print("Processing iamge", image.name)
-        new_image.generate_normal_featurevector(noise_classifier)
-        # Make output folder if it doesn't exist
+            print("Read/Write to", out_featurevector)
         try:
-            os.makedirs(out_cat)
-        except FileExistsError:
-            pass
-        np.save(out_featurevector, new_image.no_noise_featurevector)
+            # Try loading serialised featurevectors if it's ran before already
+            new_image.no_noise_featurevector= np.load(out_featurevector, allow_pickle=True)
+            if GlobalConfig.get('debug'):
+                print("Image featurevector loaded from file")
+        except (IOError, ValueError):
+            if GlobalConfig.get('debug'):
+                print("Processing iamge", image.name)
+            new_image.generate_normal_featurevector(noise_classifier)
+            # Make output folder if it doesn't exist
+            try:
+                os.makedirs(out_cat)
+            except FileExistsError:
+                pass
+            np.save(out_featurevector, new_image.no_noise_featurevector)
 
     # Load / generate Gussian sigma 10 noise featurevector
     out_cat = os.path.join(out_dir, 'gaussian-10', image.label)
