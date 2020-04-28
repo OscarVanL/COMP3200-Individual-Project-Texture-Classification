@@ -37,6 +37,8 @@ Args:
 -i or --noise-intensity : How much noise to apply to test textures (Sigma / Variance / Ratio)
 -m or --multiprocess : Whether to use multi process featurevector generation
 -e or --example : Generate example images used in dissertation report
+--data-ratio : Ratio of the dataset to load.
+--mrlbp-classifier : Which classifier to use for mrlbp, 'knn' or 'svm'
 --noise-train : Apply the noise to the train dataset too
 --ecs : If running on an ECS Lab machine, load the dataset from C:\Local instead of the CWD.
 --debug : Whether to run in debug mode (uses a reduced dataset to speed up execution, prints more stuff)
@@ -47,12 +49,13 @@ def main():
     # 'scale' allows the image_scaled scale to be set. Eg: 0.25, 0.5, 1.0
     argList = sys.argv[1:]
     shortArg = 'a:d:t:s:S:k:rn:i:me'
-    longArg = ['algorithm=', 'dataset=', 'train-ratio=', 'scale=', 'test-scale=', 'folds=', 'rotations', 'noise=', 'noise-intensity=', 'multiprocess', 'example',
-               'noise-train', 'ecs', 'debug']
+    longArg = ['algorithm=', 'dataset=', 'train-ratio=', 'scale=', 'test-scale=', 'folds=', 'rotations', 'noise=',
+               'noise-intensity=', 'multiprocess', 'example', 'data-ratio=', 'mrlbp-classifier=', 'noise-train', 'ecs', 'debug']
 
     valid_algorithms = ['RLBP', 'MRLBP', 'MRELBP', 'BM3DELBP', 'NoiseClassifier']
     valid_datasets = ['kylberg']
     valid_noise = ['gaussian', 'speckle', 'salt-pepper']
+    valid_mrlbp_classifiers = ['svm', 'knn']
 
     try:
         args, vals = getopt.getopt(argList, shortArg, longArg)
@@ -104,13 +107,25 @@ def main():
                 print('Using noise intensity (sigma / ratio) of:', val)
                 GlobalConfig.set("noise_val", float(val))
             elif arg in ('-m', '--multiprocess'):
-                cores = psutil.cpu_count()  # Note: this gets physical (non-logical / hyperthreaded) cores
+                cores = psutil.cpu_count(logical=False)  # Note: this gets physical (non-logical / hyperthreaded) cores
                 print('Using {} processor cores for computing featurevectors'.format(cores))
                 GlobalConfig.set('multiprocess', True)
                 GlobalConfig.set('cpu_count', cores)
             elif arg in ('-e', '--example'):
                 print('Generating algorithm example image_scaled')
-                GlobalConfig.set("examples", True)
+                GlobalConfig.set('examples', True)
+            elif arg == '--data-ratio':
+                if 0 < float(val) <= 1.0:
+                    print('Using dataset ratio:', val)
+                    GlobalConfig.set('data_ratio', float(val))
+                else:
+                    raise ValueError('Data ratio must be 0 < ratio <= 1.0')
+            elif arg == '--mrlbp-classifier':
+                if val in valid_mrlbp_classifiers:
+                    print("MRLBP algorithm (if configured) will use {} classifier".format(val))
+                    GlobalConfig.set('mrlbp_classifier', val)
+                else:
+                    raise ValueError('Invalid classifier chosen for mrlbp, choose one of the following:', valid_mrlbp_classifiers)
             elif arg == '--noise-train':
                 print("Applying noise to the training dataset as well as the test dataset")
                 GlobalConfig.set('train_noise', True)
@@ -139,7 +154,7 @@ def main():
             # To save time in debug mode, only load one class and load a smaller proportion of it (25% of samples)
             kylberg = DatasetManager.KylbergTextures(num_classes=2, data_ratio=0.25)
         else:
-            kylberg = DatasetManager.KylbergTextures(num_classes=28, data_ratio=1.0)
+            kylberg = DatasetManager.KylbergTextures(num_classes=28, data_ratio=GlobalConfig.get('data_ratio'))
         # Load Dataset & Cross Validator
         dataset = kylberg.load_data()
         cross_validator = kylberg.get_cross_validator()
@@ -229,7 +244,7 @@ def main():
         predictor = RLBP.RobustLBPPredictor(dataset, cross_validator)
     elif GlobalConfig.get('algorithm') == 'MRLBP':
         print("Performing MRLBP Classification")
-        predictor = RLBP.MultiresolutionLBPPredictor(dataset, cross_validator, 'svm')
+        predictor = RLBP.MultiresolutionLBPPredictor(dataset, cross_validator)
     elif GlobalConfig.get('algorithm') == 'MRELBP':
         print("Performing MRELBP Classification")
         predictor = MRELBP.MedianRobustExtendedLBPPredictor(dataset, cross_validator)
@@ -377,7 +392,7 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
             print("Read/Write to", out_featurevector)
         try:
             # Try loading serialised featurevectors if it's ran before already
-            new_image.no_noise_featurevector= np.load(out_featurevector, allow_pickle=True)
+            new_image.no_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
             if GlobalConfig.get('debug'):
                 print("Image featurevector loaded from file")
         except (IOError, ValueError):
@@ -391,24 +406,64 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
                 pass
             np.save(out_featurevector, new_image.no_noise_featurevector)
 
-    # Load / generate Gussian sigma 10 noise featurevector
-    out_cat = os.path.join(out_dir, 'gaussian-10', image.label)
-    out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
-    if GlobalConfig.get('debug'):
-        print("Read/Write to", out_featurevector)
-    try:
-        new_image.gauss_10_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
+    # Use a smaller NoiseClassifier training dataset if testing rotated images due to memory constraints
+    if not GlobalConfig.get('rotate'):
+        # Load / generate Gussian sigma 10 noise featurevector
+        out_cat = os.path.join(out_dir, 'gaussian-10', image.label)
+        out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
         if GlobalConfig.get('debug'):
-            print("Image featurevector loaded from file")
-    except (IOError, ValueError):
-        if GlobalConfig.get('debug'):
-            print("Processing image", image.name)
-        new_image.generate_gauss_10(noise_classifier)
+            print("Read/Write to", out_featurevector)
         try:
-            os.makedirs(out_cat)
-        except FileExistsError:
-            pass
-        np.save(out_featurevector, new_image.gauss_10_noise_featurevector)
+            new_image.gauss_10_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
+            if GlobalConfig.get('debug'):
+                print("Image featurevector loaded from file")
+        except (IOError, ValueError):
+            if GlobalConfig.get('debug'):
+                print("Processing image", image.name)
+            new_image.generate_gauss_10(noise_classifier)
+            try:
+                os.makedirs(out_cat)
+            except FileExistsError:
+                pass
+            np.save(out_featurevector, new_image.gauss_10_noise_featurevector)
+
+        # Load / generate Speckle var=0.02 noise featurevector
+        out_cat = os.path.join(out_dir, 'speckle-002', image.label)
+        out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
+        if GlobalConfig.get('debug'):
+            print("Read/Write to", out_featurevector)
+        try:
+            new_image.speckle_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
+            if GlobalConfig.get('debug'):
+                print("Image featurevector loaded from file")
+        except (IOError, ValueError):
+            if GlobalConfig.get('debug'):
+                print("Processing image", image.name)
+            new_image.generate_speckle_002(noise_classifier)
+            try:
+                os.makedirs(out_cat)
+            except FileExistsError:
+                pass
+            np.save(out_featurevector, new_image.speckle_002_noise_featurevector)
+
+        # Load / generate Salt and Pepper 2% noise featurevector
+        out_cat = os.path.join(out_dir, 'salt-pepper-002', image.label)
+        out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
+        if GlobalConfig.get('debug'):
+            print("Read/Write to", out_featurevector)
+        try:
+            new_image.salt_pepper_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
+            if GlobalConfig.get('debug'):
+                print("Image featurevector loaded from file")
+        except (IOError, ValueError):
+            if GlobalConfig.get('debug'):
+                print("Processing image", image.name)
+            new_image.generate_salt_pepper_002(noise_classifier)
+            try:
+                os.makedirs(out_cat)
+            except FileExistsError:
+                pass
+            np.save(out_featurevector, new_image.salt_pepper_002_noise_featurevector)
 
     # Load / generate Gaussian sigma 25 noise featurevector
     out_cat = os.path.join(out_dir, 'gaussian-25', image.label)
@@ -429,25 +484,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
             pass
         np.save(out_featurevector, new_image.gauss_25_noise_featurevector)
 
-    # Load / generate Speckle var=0.02 noise featurevector
-    out_cat = os.path.join(out_dir, 'speckle-002', image.label)
-    out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
-    if GlobalConfig.get('debug'):
-        print("Read/Write to", out_featurevector)
-    try:
-        new_image.speckle_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
-        if GlobalConfig.get('debug'):
-            print("Image featurevector loaded from file")
-    except (IOError, ValueError):
-        if GlobalConfig.get('debug'):
-            print("Processing image", image.name)
-        new_image.generate_speckle_002(noise_classifier)
-        try:
-            os.makedirs(out_cat)
-        except FileExistsError:
-            pass
-        np.save(out_featurevector, new_image.speckle_002_noise_featurevector)
-
     # Load / generate Speckle var=0.04 noise featurevector
     out_cat = os.path.join(out_dir, 'speckle-004', image.label)
     out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
@@ -466,25 +502,6 @@ def describe_noise(image: DatasetManager.Image, out_dir: str, test_out_dir: str)
         except FileExistsError:
             pass
         np.save(out_featurevector, new_image.speckle_004_noise_featurevector)
-
-    # Load / generate Salt and Pepper 2% noise featurevector
-    out_cat = os.path.join(out_dir, 'salt-pepper-002', image.label)
-    out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
-    if GlobalConfig.get('debug'):
-        print("Read/Write to", out_featurevector)
-    try:
-        new_image.salt_pepper_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
-        if GlobalConfig.get('debug'):
-            print("Image featurevector loaded from file")
-    except (IOError, ValueError):
-        if GlobalConfig.get('debug'):
-            print("Processing image", image.name)
-        new_image.generate_salt_pepper_002(noise_classifier)
-        try:
-            os.makedirs(out_cat)
-        except FileExistsError:
-            pass
-        np.save(out_featurevector, new_image.salt_pepper_002_noise_featurevector)
 
     # Load / generate Salt and Pepper 4% noise featurevector
     out_cat = os.path.join(out_dir, 'salt-pepper-004', image.label)

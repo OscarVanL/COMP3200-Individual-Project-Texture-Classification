@@ -19,12 +19,15 @@ class GlobalConfig:
         "cpu_count": None,
         "examples": False,
         "train_noise": False,
+        "data_ratio": 1.0,
+        "mrlbp_classifier": 'svm',
         "ECS": False,
         "debug": False,
         "CWD": None
     }
 
-    __setters = ["algorithm", "dataset", "train_ratio", "scale", "test_scale", "folds", "rotate", "noise", "noise_val", "multiprocess", "cpu_count", "examples", "train_noise", "ECS", "debug", "CWD"]
+    __setters = ["algorithm", "dataset", "train_ratio", "scale", "test_scale", "folds", "rotate", "noise", "noise_val",
+                 "multiprocess", "cpu_count", "examples", "train_noise", "data_ratio", "ECS", "mrlbp_classifier", "debug", "CWD"]
 
     @staticmethod
     def get(name):
