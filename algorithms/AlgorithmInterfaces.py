@@ -130,27 +130,35 @@ class NoiseClassifierInterface:
         self.dataset_X = []
         self.dataset_y = []
         for image in dataset:
-            # Add no-noise twice so that each class is equal in size.
-            if GlobalConfig.get('noise') is None:
-                self.dataset_X.append(image.no_noise_featurevector)
-                self.dataset_y.append('no-noise')
-                if not GlobalConfig.get('rotate'):
-                    self.dataset_X.append(image.no_noise_featurevector)
-                    self.dataset_y.append('no-noise')
+            self.__add_to_dataset__(image)
 
-            if not GlobalConfig.get('rotate'):
-                self.dataset_X.append(image.gauss_10_noise_featurevector)
-                self.dataset_y.append('gaussian')
-                self.dataset_X.append(image.speckle_002_noise_featurevector)
-                self.dataset_y.append('speckle')
-                self.dataset_X.append(image.salt_pepper_002_noise_featurevector)
-                self.dataset_y.append('salt-pepper')
-            self.dataset_X.append(image.gauss_25_noise_featurevector)
-            self.dataset_y.append('gaussian')
-            self.dataset_X.append(image.speckle_004_noise_featurevector)
-            self.dataset_y.append('speckle')
-            self.dataset_X.append(image.salt_pepper_004_noise_featurevector)
-            self.dataset_y.append('salt-pepper')
+
+    def __add_to_dataset__(self, image):
+        # Add no-noise twice so that each class is equal in size.
+        if GlobalConfig.get('noise') is None:
+            self.dataset_X.append(image.no_noise_featurevector)
+            self.dataset_y.append('no-noise')
+            self.dataset_X.append(image.no_noise_featurevector)
+            self.dataset_y.append('no-noise')
+
+        self.dataset_X.append(image.gauss_10_noise_featurevector)
+        self.dataset_y.append('gaussian')
+        self.dataset_X.append(image.speckle_002_noise_featurevector)
+        self.dataset_y.append('speckle')
+        self.dataset_X.append(image.salt_pepper_002_noise_featurevector)
+        self.dataset_y.append('salt-pepper')
+        self.dataset_X.append(image.gauss_25_noise_featurevector)
+        self.dataset_y.append('gaussian')
+        self.dataset_X.append(image.speckle_004_noise_featurevector)
+        self.dataset_y.append('speckle')
+        self.dataset_X.append(image.salt_pepper_004_noise_featurevector)
+        self.dataset_y.append('salt-pepper')
+
+        # Ensure noise featurevectors for rotations of images are added too
+        if image.test_rotations is not None:
+            for image in image.test_rotations:
+                self.__add_to_dataset__(image)
+
 
     @abstractmethod
     def begin_cross_validation(self) -> Tuple[List[np.array], List[str]]:

@@ -109,7 +109,7 @@ def main():
                 print('Using noise intensity (sigma / ratio) of:', val)
                 GlobalConfig.set("noise_val", float(val))
             elif arg in ('-m', '--multiprocess'):
-                cores = psutil.cpu_count(logical=False)  # Note: this gets physical (non-logical / hyperthreaded) cores
+                cores = psutil.cpu_count()
                 print('Using {} processor cores for computing featurevectors'.format(cores))
                 GlobalConfig.set('multiprocess', True)
                 GlobalConfig.set('cpu_count', cores)
@@ -160,8 +160,6 @@ def main():
         # Load Dataset & Cross Validator
         dataset = kylberg.load_data()
         cross_validator = kylberg.get_cross_validator()
-        objgraph.show_most_common_types(limit=30)
-        gc.collect()
 
         print("Dataset loaded")
     elif GlobalConfig.get('dataset') is None:
@@ -383,7 +381,7 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
     return image
 
 
-def describe_noise(image: BM3DELBP.BM3DELBPImage, out_dir: str, test_out_dir: str) -> BM3DELBP.BM3DELBPImage:
+def describe_noise(image: BM3DELBP.BM3DELBPImage, out_dir: str, test_out_dir: str):
     """
     Applies BM3DELBP's Noise Classifier to generate featurevectors for every image, for each type of noise applied.
     :param image: BM3DELBPImage to apply noise to
@@ -416,63 +414,24 @@ def describe_noise(image: BM3DELBP.BM3DELBPImage, out_dir: str, test_out_dir: st
             np.save(out_featurevector, image.no_noise_featurevector)
 
     # Use a smaller NoiseClassifier training dataset if testing rotated images due to memory constraints
-    if not GlobalConfig.get('rotate'):
-        # Load / generate Gussian sigma 10 noise featurevector
-        out_cat = os.path.join(out_dir, 'gaussian-10', image.label)
-        out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
+    # Load / generate Gussian sigma 10 noise featurevector
+    out_cat = os.path.join(out_dir, 'gaussian-10', image.label)
+    out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
+    if GlobalConfig.get('debug'):
+        print("Read/Write to", out_featurevector)
+    try:
+        image.gauss_10_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
         if GlobalConfig.get('debug'):
-            print("Read/Write to", out_featurevector)
-        try:
-            image.gauss_10_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
-            if GlobalConfig.get('debug'):
-                print("Image featurevector loaded from file")
-        except (IOError, ValueError):
-            if GlobalConfig.get('debug'):
-                print("Processing image", image.name)
-            image.generate_gauss_10(noise_classifier)
-            try:
-                os.makedirs(out_cat)
-            except FileExistsError:
-                pass
-            np.save(out_featurevector, image.gauss_10_noise_featurevector)
-
-        # Load / generate Speckle var=0.02 noise featurevector
-        out_cat = os.path.join(out_dir, 'speckle-002', image.label)
-        out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
+            print("Image featurevector loaded from file")
+    except (IOError, ValueError):
         if GlobalConfig.get('debug'):
-            print("Read/Write to", out_featurevector)
+            print("Processing image", image.name)
+        image.generate_gauss_10(noise_classifier)
         try:
-            image.speckle_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
-            if GlobalConfig.get('debug'):
-                print("Image featurevector loaded from file")
-        except (IOError, ValueError):
-            if GlobalConfig.get('debug'):
-                print("Processing image", image.name)
-            image.generate_speckle_002(noise_classifier)
-            try:
-                os.makedirs(out_cat)
-            except FileExistsError:
-                pass
-            np.save(out_featurevector, image.speckle_002_noise_featurevector)
-
-        # Load / generate Salt and Pepper 2% noise featurevector
-        out_cat = os.path.join(out_dir, 'salt-pepper-002', image.label)
-        out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
-        if GlobalConfig.get('debug'):
-            print("Read/Write to", out_featurevector)
-        try:
-            image.salt_pepper_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
-            if GlobalConfig.get('debug'):
-                print("Image featurevector loaded from file")
-        except (IOError, ValueError):
-            if GlobalConfig.get('debug'):
-                print("Processing image", image.name)
-            image.generate_salt_pepper_002(noise_classifier)
-            try:
-                os.makedirs(out_cat)
-            except FileExistsError:
-                pass
-            np.save(out_featurevector, image.salt_pepper_002_noise_featurevector)
+            os.makedirs(out_cat)
+        except FileExistsError:
+            pass
+        np.save(out_featurevector, image.gauss_10_noise_featurevector)
 
     # Load / generate Gaussian sigma 25 noise featurevector
     out_cat = os.path.join(out_dir, 'gaussian-25', image.label)
@@ -493,6 +452,25 @@ def describe_noise(image: BM3DELBP.BM3DELBPImage, out_dir: str, test_out_dir: st
             pass
         np.save(out_featurevector, image.gauss_25_noise_featurevector)
 
+    # Load / generate Speckle var=0.02 noise featurevector
+    out_cat = os.path.join(out_dir, 'speckle-002', image.label)
+    out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
+    if GlobalConfig.get('debug'):
+        print("Read/Write to", out_featurevector)
+    try:
+        image.speckle_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
+        if GlobalConfig.get('debug'):
+            print("Image featurevector loaded from file")
+    except (IOError, ValueError):
+        if GlobalConfig.get('debug'):
+            print("Processing image", image.name)
+        image.generate_speckle_002(noise_classifier)
+        try:
+            os.makedirs(out_cat)
+        except FileExistsError:
+            pass
+        np.save(out_featurevector, image.speckle_002_noise_featurevector)
+
     # Load / generate Speckle var=0.04 noise featurevector
     out_cat = os.path.join(out_dir, 'speckle-004', image.label)
     out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
@@ -511,6 +489,25 @@ def describe_noise(image: BM3DELBP.BM3DELBPImage, out_dir: str, test_out_dir: st
         except FileExistsError:
             pass
         np.save(out_featurevector, image.speckle_004_noise_featurevector)
+
+    # Load / generate Salt and Pepper 2% noise featurevector
+    out_cat = os.path.join(out_dir, 'salt-pepper-002', image.label)
+    out_featurevector = os.path.join(out_cat, '{}-featurevector.npy'.format(image.name))
+    if GlobalConfig.get('debug'):
+        print("Read/Write to", out_featurevector)
+    try:
+        image.salt_pepper_002_noise_featurevector = np.load(out_featurevector, allow_pickle=True)
+        if GlobalConfig.get('debug'):
+            print("Image featurevector loaded from file")
+    except (IOError, ValueError):
+        if GlobalConfig.get('debug'):
+            print("Processing image", image.name)
+        image.generate_salt_pepper_002(noise_classifier)
+        try:
+            os.makedirs(out_cat)
+        except FileExistsError:
+            pass
+        np.save(out_featurevector, image.salt_pepper_002_noise_featurevector)
 
     # Load / generate Salt and Pepper 4% noise featurevector
     out_cat = os.path.join(out_dir, 'salt-pepper-004', image.label)
@@ -552,8 +549,10 @@ def describe_noise(image: BM3DELBP.BM3DELBPImage, out_dir: str, test_out_dir: st
             pass
         np.save(out_featurevector, image.test_noise_featurevector)
 
-    # Test because I suspect Garbage Collection isn't working properly for np.load()
-    gc.collect()
+    # Ensure rotated variants of the image also have noise featurevectors generated/loaded
+    if image.test_rotations is not None:
+        for image in image.test_rotations:
+            describe_noise(image, out_dir, test_out_dir)
 
 
 if __name__ == '__main__':

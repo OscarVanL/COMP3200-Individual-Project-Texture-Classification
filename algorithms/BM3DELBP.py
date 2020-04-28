@@ -115,6 +115,12 @@ class BM3DELBP(ImageProcessorInterface):
 
                 np.save(out_file, image.test_featurevector)
 
+        # Also process rotated images, but only for testing (since we're testing for rotation invariance)
+        if image.test_rotations is not None:
+            if test_image:
+                for image in image.test_rotations:
+                    self.describe_filter(image, test_image, train_out_dir, test_out_dir)
+
         return image
 
     def describe(self, image, test_image: bool):
@@ -330,12 +336,22 @@ class BM3DELBPPredictor(ImageClassifierInterface):
                                             total=len(test_index), desc='BM3DELBP Test Featurevectors'):
                         test_X.append(image.test_featurevector)
                         test_y.append(image.label)
+                        # Also add rotations of the image if they exist
+                        if image.test_rotations is not None:
+                            for rotated_image in image.test_rotations:
+                                test_X.append(rotated_image.test_featurevector)
+                                test_y.append(image.label)
             else:
                 for index in test_index:
                     # Apply BM3DELBP's appropriate filter and generate the BM3DELBP descriptor
                     self.dataset[index] = self.BM3DELBP.describe_filter(image=self.dataset[index], test_image=True, train_out_dir=train_out_dir, test_out_dir=test_out_dir)
                     test_X.append(self.dataset[index].test_featurevector)
                     test_y.append(self.dataset[index].label)
+                    # Also add rotations of the image if they exist
+                    if self.dataset[index].test_rotations is not None:
+                        for rotated_image in self.dataset[index].test_rotations:
+                            test_X.append(rotated_image.test_featurevector)
+                            test_y.append(image.label)
 
             pred_y = self.classify(test_X)
             test_X_all.extend(test_X)
