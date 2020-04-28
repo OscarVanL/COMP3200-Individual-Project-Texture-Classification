@@ -44,13 +44,14 @@ class BM3DELBP(ImageProcessorInterface):
         else:
             return "scale-{}_noise-{}_noiseval-{}".format(image_scale, noise_type, noise_val)
 
-    def describe_filter(self, image, test_image: bool, train_out_dir, test_out_dir):
+    def describe_filter(self, image, test_image: bool, train_out_dir, test_out_dir, ecs=False):
         """
         Perform the filtering + description stage for BM3DELBP algorithm.
         Load/Save featurevector to file to save time on future runs
         :param image: Image data to apply BM3DELBP filter + description upon
         :param test_image: Whether the featurevector is being generated for the test image
         :param dataset: Name of dataset folder
+        :param ecs: Whether this is running on ECS machines, ignore this.
         :return: Image containing featurevector
         """
         if image is None:
@@ -103,7 +104,7 @@ class BM3DELBP(ImageProcessorInterface):
                 # Perform appropriate filter
                 if image.noise_prediction is None:
                     raise ValueError('describe_filter called on BM3DELBP image where no noise prediction has been made')
-                test_data_filtered = self.apply_filter(image.test_data, image.name, image.noise_prediction)
+                test_data_filtered = self.apply_filter(image.test_data, image.name, image.noise_prediction, ecs)
                 image.test_featurevector = self.describe(test_data_filtered, test_image=True)
                 image.data = None
 
@@ -153,13 +154,13 @@ class BM3DELBP(ImageProcessorInterface):
         else:
             raise ValueError('Noise prediction {} does not match expected values'.format(noise_prediction))
 
-    def apply_filter(self, image_data, image_name, noise_prediction):
+    def apply_filter(self, image_data, image_name, noise_prediction, ecs=False):
         if noise_prediction == 'gaussian':
             # Apply BM3D filter
             image_filtered = SharedFunctions.bm3d_filter(image_data, 50/255)
         elif noise_prediction == 'speckle':
             # Establish connection to MATLAB Engine for SAR-BM3D filter
-            sar_bm3d = SARBM3D.SARBM3DFilter()
+            sar_bm3d = SARBM3D.SARBM3DFilter(ecs)
             # Connect to MATLAB Engine for SAR-BM3D filter
             sar_bm3d.connect_matlab()
             # Apply SAR-BM3D filter
@@ -304,12 +305,12 @@ class BM3DELBPPredictor(ImageClassifierInterface):
                 with Pool(GlobalConfig.get('cpu_count')) as pool_train:
                     # Generate featurevectors
                     for image in tqdm.tqdm(pool_train.istarmap(self.BM3DELBP.describe_filter,
-                                                         zip([self.dataset[index] for index in train_index], repeat(False), repeat(train_out_dir), repeat(test_out_dir))),
+                                                         zip([self.dataset[index] for index in train_index], repeat(False), repeat(train_out_dir), repeat(test_out_dir), repeat(GlobalConfig.get('ECS')))),
                                            total=len(train_index), desc='BM3DELBP Train Featurevectors'):
                         train.append(image)
             else:
                 for index in train_index:
-                    train.append(self.BM3DELBP.describe_filter(image=self.dataset[index], test_image=False, train_out_dir=train_out_dir, test_out_dir=test_out_dir))
+                    train.append(self.BM3DELBP.describe_filter(image=self.dataset[index], test_image=False, train_out_dir=train_out_dir, test_out_dir=test_out_dir, ecs=GlobalConfig.get('ECS')))
             self.train(train)
 
             print("BM3DELBP Classifier trained on non-noisy images")
@@ -332,7 +333,7 @@ class BM3DELBPPredictor(ImageClassifierInterface):
                 # Generate test_featurevectors using multiprocessing
                 with Pool(GlobalConfig.get('cpu_count')) as pool_test:
                     for image in tqdm.tqdm(pool_test.istarmap(self.BM3DELBP.describe_filter,
-                                                         zip([self.dataset[index] for index in test_index], repeat(True), repeat(train_out_dir), repeat(test_out_dir))),
+                                                         zip([self.dataset[index] for index in test_index], repeat(True), repeat(train_out_dir), repeat(test_out_dir), repeat(GlobalConfig.get('ECS')))),
                                             total=len(test_index), desc='BM3DELBP Test Featurevectors'):
                         test_X.append(image.test_featurevector)
                         test_y.append(image.label)
@@ -344,7 +345,7 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             else:
                 for index in test_index:
                     # Apply BM3DELBP's appropriate filter and generate the BM3DELBP descriptor
-                    self.dataset[index] = self.BM3DELBP.describe_filter(image=self.dataset[index], test_image=True, train_out_dir=train_out_dir, test_out_dir=test_out_dir)
+                    self.dataset[index] = self.BM3DELBP.describe_filter(image=self.dataset[index], test_image=True, train_out_dir=train_out_dir, test_out_dir=test_out_dir, ecs=GlobalConfig.get('ECS'))
                     test_X.append(self.dataset[index].test_featurevector)
                     test_y.append(self.dataset[index].label)
                     # Also add rotations of the image if they exist

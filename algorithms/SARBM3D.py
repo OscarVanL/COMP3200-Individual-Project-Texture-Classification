@@ -4,6 +4,8 @@ from scipy.io import savemat
 import numpy as np
 import cv2
 
+from config import GlobalConfig
+
 """
 The only existing SAR-BM3D Source Code on the internet is written in Matlab.
 Furthermore, there is no source code! Only compiled binaries...
@@ -13,8 +15,17 @@ The SAR-BM3D executables can be downloaded here: http://www.grip.unina.it/web-do
 
 
 class SARBM3DFilter():
-    def __init__(self):
-        pass
+    def __init__(self, ecs=False):
+        if ecs:
+            self.SAMRBM3D_DIR = os.path.join('C:/', 'Local', 'SARBM3D_v10_win64')
+        else:
+            self.SAMRBM3D_DIR = os.path.join(os.getcwd(), 'algorithms', 'SARBM3D_v10_win64')
+
+        # Make output folder if it doesn't exist
+        self.OUT_DIR_PYTHON = os.path.join(self.SAMRBM3D_DIR, 'temp')
+        if not (os.path.exists( self.OUT_DIR_PYTHON)):
+            os.makedirs( self.OUT_DIR_PYTHON)
+
 
     def sar_bm3d_filter(self, image, image_name, L=50):
         """
@@ -29,17 +40,11 @@ class SARBM3DFilter():
         :return: 2D ndarray representing image after filtering
         """
         width, height = image.shape
-
         # Scale in range [0, 255]:
         scaled_image = cv2.normalize(image, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 
         out_file = '{}.mat'.format(image_name)
-        out_dir_python = os.path.join('algorithms', 'SARBM3D_v10_win64', 'temp')
-        # Make output folder if it doesn't exist
-        if not (os.path.exists(out_dir_python)):
-            os.makedirs(out_dir_python)
-
-        out_file_python = os.path.join(out_dir_python, out_file)
+        out_file_python = os.path.join( self.OUT_DIR_PYTHON, out_file)
         out_file_matlab = os.path.join('temp', out_file)
 
         # The MATLAB SAR-BM3D filter wants the image encoded as a double.
@@ -64,8 +69,7 @@ class SARBM3DFilter():
     def connect_matlab(self):
         # Initialise MATLAB engine
         self.eng = matlab.engine.start_matlab()
-        # Check of SARBM3D_v10_win64 executables folder exists
-        self.SAMRBM3D_DIR = os.path.join(os.getcwd(), 'algorithms', 'SARBM3D_v10_win64')
+        # Check if SARBM3D_v10_win64 executables folder exists
         if not os.path.exists(self.SAMRBM3D_DIR):
             raise FileNotFoundError('SARBM3D_v10_win64 executables missing. Place them in: ' + self.SAMRBM3D_DIR)
         # Switch to directory
