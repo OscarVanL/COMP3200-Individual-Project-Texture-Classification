@@ -196,18 +196,16 @@ class MultiresolutionLBPPredictor(ImageClassifierInterface):
     This uses 3-NN with Mahalanobis distance
     """
 
-    def __init__(self, dataset: List[DatasetManager.Image], cross_validator, classifier_type):
+    def __init__(self, dataset: List[DatasetManager.Image], cross_validator):
         """
         :param dataset: Dataset to train/test with
         :param cross_validator: Cross validator to use for train/test splits
-        :param classifier_type: Whether to use 'svm' or 'knn' for the noise_classifier
         """
         super().__init__(dataset, cross_validator)
-        self.classifier_type = classifier_type
         self.classifier = None
 
     def begin_cross_validation(self) -> Tuple[List[np.array], List[str]]:
-        print("Training MRLBP using", self.classifier_type, "noise_classifier.")
+        print("Training MRLBP using", GlobalConfig.get('mrlbp_classifier'), "classifier.")
         return super().begin_cross_validation()
 
     def train(self, train: List[DatasetManager.Image]):
@@ -217,7 +215,7 @@ class MultiresolutionLBPPredictor(ImageClassifierInterface):
         X_train = X_train.astype(np.float64)
         y_train = [img.label for img in train]
 
-        if self.classifier_type == 'knn':
+        if GlobalConfig.get('mrlbp_classifier') == 'knn':
             # Calculate transposed covariance matrix as described here: https://stackoverflow.com/a/55623162/6008271
             X_train_cov = np.linalg.inv(np.cov(X_train.transpose())).transpose()
 
@@ -227,11 +225,11 @@ class MultiresolutionLBPPredictor(ImageClassifierInterface):
                                                    metric='mahalanobis',
                                                    metric_params={'VI': X_train_cov})
             self.classifier.fit(X_train, y_train)
-        elif self.classifier_type == 'svm':
+        elif GlobalConfig.get('mrlbp_classifier') == 'svm':
             self.classifier = SVC()
             self.classifier.fit(X_train, y_train)
         else:
-            raise ValueError('Invalid Classifier Type specified for MultiresolutionLBPPredictor')
+            raise ValueError('Invalid Classifier Type specified as --mrlbp-classifier.')
 
     def classify(self, X: List[np.array]):
         y_predictions = self.classifier.predict(X)

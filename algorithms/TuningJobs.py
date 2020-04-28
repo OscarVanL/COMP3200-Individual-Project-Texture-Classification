@@ -1,4 +1,5 @@
 import os
+import gc
 
 from numba import config
 config.THREADING_LAYER = 'workqueue'
@@ -49,6 +50,8 @@ def tune_noise_classifier():
 
     dataset = DatasetManager.KylbergTextures(num_classes=28, data_ratio=0.5)
     images = dataset.load_data()
+    gc.collect()
+
     bm3d_images = []
     # Convert to BM3D images
     for image in images:
