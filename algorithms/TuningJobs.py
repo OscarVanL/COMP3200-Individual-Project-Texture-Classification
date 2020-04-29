@@ -80,7 +80,7 @@ def tune_noise_classifier():
 
     out_csv = os.path.join(GlobalConfig.get('CWD'), 'NoiseClassifierTuning', 'Results.txt')
 
-    with Pool(processes=GlobalConfig.get('cpu_count')) as pool:
+    with Pool(processes=GlobalConfig.get('cpu_count'), maxtasksperchild=20) as pool:
         # Generate image featurevectors and replace DatasetManager.Image with BM3DELBP.BM3DELBPImage
         for result in tqdm.tqdm(pool.istarmap(do_classification, zip(settings_jobs, repeat(noise_classifier), repeat(cross_validator), repeat(bm3d_images))),
                                   total=len(settings_jobs), desc='NoiseClassifier tuning'):
