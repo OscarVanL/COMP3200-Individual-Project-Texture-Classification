@@ -225,13 +225,13 @@ def main():
             dataset[index] = (index, img)
 
         if GlobalConfig.get('algorithm') == 'NoiseClassifier' or GlobalConfig.get('algorithm') == 'BM3DELBP':
-            with Pool(processes=GlobalConfig.get('cpu_count'), maxtasksperchild=20) as pool:
+            with Pool(processes=GlobalConfig.get('cpu_count'), maxtasksperchild=5) as pool:
                 # Generate image noise featurevectors
                 for index, image in tqdm.tqdm(pool.istarmap(describe_noise_pool, zip(dataset, repeat(noise_out_dir), repeat(test_noise_out_dir))),
                                        total=len(dataset), desc='Noise Featurevectors'):
                     dataset[index] = image
         else:
-            with Pool(processes=GlobalConfig.get('cpu_count'), maxtasksperchild=20) as pool:
+            with Pool(processes=GlobalConfig.get('cpu_count'), maxtasksperchild=5) as pool:
                 # Generate featurevectors
                 for index, image in tqdm.tqdm(pool.istarmap(describe_image_pool, zip(repeat(algorithm), dataset, repeat(train_out_dir), repeat(test_out_dir))),
                                        total=len(dataset), desc='Texture Featurevectors'):
