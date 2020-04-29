@@ -138,10 +138,10 @@ class NoiseClassifierInterface:
         if GlobalConfig.get('noise') is None:
             self.dataset_X.append(image.no_noise_featurevector)
             self.dataset_y.append('no-noise')
-            if not GlobalConfig.get('rotation'):
+            if not GlobalConfig.get('rotate'):
                 self.dataset_X.append(image.no_noise_featurevector)
                 self.dataset_y.append('no-noise')
-        if not GlobalConfig.get('rotation'):
+        if not GlobalConfig.get('rotate'):
             self.dataset_X.append(image.gauss_10_noise_featurevector)
             self.dataset_y.append('gaussian')
             self.dataset_X.append(image.speckle_002_noise_featurevector)
