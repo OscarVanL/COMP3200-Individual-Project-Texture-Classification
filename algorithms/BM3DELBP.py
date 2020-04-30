@@ -57,12 +57,9 @@ class BM3DELBP(ImageProcessorInterface):
         if image is None:
             raise ValueError("Image passed into describe_filter is NoneType")
 
-        print("IMAGE NAME: ", image.name)
-
         if not test_image and image.featurevector is None:
             # Non-noisy original image for training
             out_file = os.path.join(train_out_dir, '{}.npy'.format(image.name))
-            print("OUT_FILE:", out_file)
             # Read/generate featurevector for image
             if GlobalConfig.get('debug'):
                 print("Read/Write BM3DELBP featurevector file to", out_file)
