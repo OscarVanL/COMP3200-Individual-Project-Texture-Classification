@@ -9,7 +9,7 @@ from numba import config
 config.THREADING_LAYER = 'workqueue'
 
 import numpy as np
-os.environ['NUMBA_DISABLE_JIT'] = '1'
+#os.environ['NUMBA_DISABLE_JIT'] = '1'  # Disable NUMBA
 
 import ClassificationUtils
 from config import GlobalConfig
