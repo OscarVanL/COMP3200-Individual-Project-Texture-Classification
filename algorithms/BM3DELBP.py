@@ -180,7 +180,7 @@ class BM3DELBP(ImageProcessorInterface):
         elif noise_prediction == 'no-noise':
             image_filtered = image_data.copy()
         else:
-            raise ValueError('Noise prediction does not match expected values')
+            raise ValueError('Noise prediction: {} does not match expected values'.format(noise_prediction))
         return image_filtered
 
 
