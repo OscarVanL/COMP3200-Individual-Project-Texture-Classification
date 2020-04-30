@@ -92,7 +92,6 @@ class BM3DELBP(ImageProcessorInterface):
             # prediction.
             test_out_dir = os.path.join(test_out_dir, self.get_filter_name(image.noise_prediction))
             out_file = os.path.join(test_out_dir, '{}.npy'.format(image.name))
-            print("OUT_FILE:", out_file)
 
             # Read/generate featurevector for test image
             if GlobalConfig.get('debug'):
@@ -124,7 +123,6 @@ class BM3DELBP(ImageProcessorInterface):
         if image.test_rotations is not None:
             if test_image:
                 for image_rotated in image.test_rotations:
-                    print("Rotated Test Image Noise Prediction was: ", image.noise_prediction)
                     self.describe_filter(image_rotated, test_image, train_out_dir, test_out_dir)
 
         return image
@@ -332,7 +330,6 @@ class BM3DELBPPredictor(ImageClassifierInterface):
 
                 # Also make noise predictions for rotations of these test images
                 if image.test_rotations is not None:
-                    print("ROTATED IMAGES LENGTH (should be 12): ", len(image.test_rotations))
                     for rotated_image in image.test_rotations:
                         rotated_image.noise_prediction = self.noise_classifier.classify(rotated_image.test_noise_featurevector.reshape(1, -1))
 
@@ -350,7 +347,6 @@ class BM3DELBPPredictor(ImageClassifierInterface):
                         test_y.append(image.label)
                         # Also add rotations of the image if they exist
                         if image.test_rotations is not None:
-                            print("ROTATED IMAGES LENGTH (should be 12): ", len(image.test_rotations))
                             for rotated_image in image.test_rotations:
                                 test_X.append(rotated_image.test_featurevector)
                                 test_y.append(image.label)
