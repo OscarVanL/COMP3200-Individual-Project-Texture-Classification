@@ -325,6 +325,12 @@ class BM3DELBPPredictor(ImageClassifierInterface):
                 # Reshaping is required because we're classifying a single item at a time
                 image.noise_prediction = self.noise_classifier.classify(image.test_noise_featurevector.reshape(1, -1))
 
+                # Also make noise predictions for rotations of these test images
+                if image.test_rotations is not None:
+                    for rotated_image in image.test_rotations:
+                        print("ROTATED IMAGES LENGTH (should be 12): ", len(rotated_image))
+                        rotated_image.noise_prediction = self.noise_classifier.classify(rotated_image.test_noise_featurevector.reshape(1, -1))
+
             print("Noise predictions made on test images")
             print("Applying relevant filter and generating BM3DELBP descriptor for test images")
 
