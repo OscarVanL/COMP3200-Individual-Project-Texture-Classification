@@ -120,6 +120,7 @@ class BM3DELBP(ImageProcessorInterface):
         if image.test_rotations is not None:
             if test_image:
                 for image in image.test_rotations:
+                    print("Rotated Test Image Noise Prediction was: ", image.noise_prediction)
                     self.describe_filter(image, test_image, train_out_dir, test_out_dir)
 
         return image
