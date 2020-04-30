@@ -327,8 +327,8 @@ class BM3DELBPPredictor(ImageClassifierInterface):
 
                 # Also make noise predictions for rotations of these test images
                 if image.test_rotations is not None:
+                    print("ROTATED IMAGES LENGTH (should be 12): ", len(image.test_rotations))
                     for rotated_image in image.test_rotations:
-                        print("ROTATED IMAGES LENGTH (should be 12): ", len(rotated_image))
                         rotated_image.noise_prediction = self.noise_classifier.classify(rotated_image.test_noise_featurevector.reshape(1, -1))
 
             print("Noise predictions made on test images")
@@ -345,8 +345,8 @@ class BM3DELBPPredictor(ImageClassifierInterface):
                         test_y.append(image.label)
                         # Also add rotations of the image if they exist
                         if image.test_rotations is not None:
+                            print("ROTATED IMAGES LENGTH (should be 12): ", len(image.test_rotations))
                             for rotated_image in image.test_rotations:
-                                print("ROTATED IMAGES LENGTH (should be 12): ", len(rotated_image))
                                 test_X.append(rotated_image.test_featurevector)
                                 test_y.append(image.label)
             else:
