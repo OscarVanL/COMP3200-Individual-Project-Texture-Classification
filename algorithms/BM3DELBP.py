@@ -57,9 +57,12 @@ class BM3DELBP(ImageProcessorInterface):
         if image is None:
             raise ValueError("Image passed into describe_filter is NoneType")
 
+        print("IMAGE NAME: ", image.name)
+
         if not test_image and image.featurevector is None:
             # Non-noisy original image for training
             out_file = os.path.join(train_out_dir, '{}.npy'.format(image.name))
+            print("OUT_FILE:", out_file)
             # Read/generate featurevector for image
             if GlobalConfig.get('debug'):
                 print("Read/Write BM3DELBP featurevector file to", out_file)
@@ -89,6 +92,7 @@ class BM3DELBP(ImageProcessorInterface):
             # prediction.
             test_out_dir = os.path.join(test_out_dir, self.get_filter_name(image.noise_prediction))
             out_file = os.path.join(test_out_dir, '{}.npy'.format(image.name))
+            print("OUT_FILE:", out_file)
 
             # Read/generate featurevector for test image
             if GlobalConfig.get('debug'):
@@ -119,9 +123,9 @@ class BM3DELBP(ImageProcessorInterface):
         # Also process rotated images, but only for testing (since we're testing for rotation invariance)
         if image.test_rotations is not None:
             if test_image:
-                for image in image.test_rotations:
+                for image_rotated in image.test_rotations:
                     print("Rotated Test Image Noise Prediction was: ", image.noise_prediction)
-                    self.describe_filter(image, test_image, train_out_dir, test_out_dir)
+                    self.describe_filter(image_rotated, test_image, train_out_dir, test_out_dir)
 
         return image
 
