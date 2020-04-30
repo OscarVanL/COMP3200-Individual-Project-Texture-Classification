@@ -8,3 +8,4 @@ numba
 pandas
 tqdm
 psutil
+objgraph

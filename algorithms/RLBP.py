@@ -219,7 +219,6 @@ class MultiresolutionLBPPredictor(ImageClassifierInterface):
             # Calculate transposed covariance matrix as described here: https://stackoverflow.com/a/55623162/6008271
             X_train_cov = np.linalg.inv(np.cov(X_train.transpose())).transpose()
 
-
             self.classifier = KNeighborsClassifier(n_neighbors=3,
                                                    algorithm='brute',
                                                    metric='mahalanobis',

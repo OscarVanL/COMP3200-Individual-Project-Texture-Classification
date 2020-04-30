@@ -340,6 +340,7 @@ class BM3DELBPPredictor(ImageClassifierInterface):
                         # Also add rotations of the image if they exist
                         if image.test_rotations is not None:
                             for rotated_image in image.test_rotations:
+                                print("ROTATED IMAGES LENGTH (should be 12): ", len(rotated_image))
                                 test_X.append(rotated_image.test_featurevector)
                                 test_y.append(image.label)
             else:

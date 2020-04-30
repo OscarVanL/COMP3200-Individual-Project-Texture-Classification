@@ -3,11 +3,13 @@ import sys
 import os
 import psutil
 import objgraph
+from timeit import default_timer as timer
 
 from numba import config
 config.THREADING_LAYER = 'workqueue'
 
 import numpy as np
+os.environ['NUMBA_DISABLE_JIT'] = '1'
 
 import ClassificationUtils
 from config import GlobalConfig
@@ -153,7 +155,7 @@ def main():
     if GlobalConfig.get('dataset') == 'kylberg':
         if GlobalConfig.get('debug'):
             # To save time in debug mode, only load one class and load a smaller proportion of it (25% of samples)
-            kylberg = DatasetManager.KylbergTextures(num_classes=2, data_ratio=0.25)
+            kylberg = DatasetManager.KylbergTextures(num_classes=2, data_ratio=GlobalConfig.get('data_ratio'))
         else:
             kylberg = DatasetManager.KylbergTextures(num_classes=28, data_ratio=GlobalConfig.get('data_ratio'))
         # Load Dataset & Cross Validator
@@ -243,9 +245,13 @@ def main():
                 # Generate image noise featurevectors
                 describe_noise(img, noise_out_dir, test_noise_out_dir)
         else:
+            print("BEGINNING TIMER:")
+            start = timer()
             for index, img in enumerate(dataset):
                 # Generate featurevetors
                 describe_image(algorithm, img, train_out_dir, test_out_dir)
+            end = timer()
+            print("TIME TAKEN:", end - start)
 
 
     # Train models and perform predictions
@@ -394,6 +400,7 @@ def describe_image(algorithm: ImageProcessorInterface, image: DatasetManager.Ima
 
     return image
 
+
 def describe_noise_pool(image_tuple, out_dir, test_out_dir):
     """
     A wrapper function for use in multiprocess Pool to maintain index IDs
@@ -405,6 +412,7 @@ def describe_noise_pool(image_tuple, out_dir, test_out_dir):
     index, image = image_tuple
     image = describe_noise(image, out_dir, test_out_dir)
     return (index, image)
+
 
 def describe_noise(image: BM3DELBP.BM3DELBPImage, out_dir: str, test_out_dir: str):
     """
@@ -577,8 +585,8 @@ def describe_noise(image: BM3DELBP.BM3DELBPImage, out_dir: str, test_out_dir: st
 
     # Ensure rotated variants of the image also have noise featurevectors generated/loaded
     if image.test_rotations is not None:
-        for image in image.test_rotations:
-            describe_noise(image, out_dir, test_out_dir)
+        for image_rotated in image.test_rotations:
+            describe_noise(image_rotated, out_dir, test_out_dir)
 
     return image
 
