@@ -151,13 +151,8 @@ class NoiseTypePredictor(NoiseClassifierInterface):
         test_y_all = []
         pred_y_all = []
         for train_index, test_index in self.cross_validator.split(self.dataset_X, self.dataset_y):
-
-
             print("Performing fold", fold)
             # Remove any existing classifiers
-            self.classifier = None
-
-            self.classifier = NoiseTypePredictor(self.dataset, None)
             # Train noise noise_classifier on this fold
             noise_train_X = [self.dataset_X[index] for index in train_index]
             noise_train_y = [self.dataset_y[index] for index in train_index]

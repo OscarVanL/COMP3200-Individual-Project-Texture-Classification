@@ -124,7 +124,6 @@ class NoiseClassifierInterface:
 
     @abstractmethod
     def __init__(self, dataset, cross_validator):
-        self.dataset = dataset
         self.cross_validator = cross_validator
 
         self.dataset_X = []

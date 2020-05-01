@@ -106,7 +106,7 @@ class BM3DELBP(ImageProcessorInterface):
                     raise ValueError('describe_filter called on BM3DELBP image where no noise prediction has been made')
                 test_data_filtered = self.apply_filter(image.test_data, image.name, image.noise_prediction, ecs)
                 image.test_featurevector = self.describe(test_data_filtered, test_image=True)
-                image.data = None
+                image.test_data = None
 
                 # Make output folder if it doesn't exist
                 try:
@@ -292,26 +292,31 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             print("Performing fold", fold)
             # Train NoiseClassifier on Train indexes only
             self.noise_classifier = None
-            noise_classifier_train = [self.dataset[index] for index in train_index]
-            self.noise_classifier = NoiseTypePredictor(noise_classifier_train, None)
+            self.noise_classifier = NoiseTypePredictor([self.dataset[index] for index in train_index], None)
             self.noise_classifier.train()
 
             print("Noise Classifier trained")
             # Remove any existing BM3DELBP classifier
             self.classifier = None
             # Train on this fold
-            train = []
+            train_X = []
+            train_y = []
             if GlobalConfig.get('multiprocess'):
                 with Pool(GlobalConfig.get('cpu_count'), maxtasksperchild=15) as pool_train:
                     # Generate featurevectors
                     for image in tqdm.tqdm(pool_train.istarmap(self.BM3DELBP.describe_filter,
                                                          zip([self.dataset[index] for index in train_index], repeat(False), repeat(train_out_dir), repeat(test_out_dir), repeat(GlobalConfig.get('ECS')))),
                                            total=len(train_index), desc='BM3DELBP Train Featurevectors'):
-                        train.append(image)
+                        train_X.append(image.featurevector.astype(np.float64))
+                        train_y.append(image.label)
             else:
                 for index in train_index:
-                    train.append(self.BM3DELBP.describe_filter(image=self.dataset[index], test_image=False, train_out_dir=train_out_dir, test_out_dir=test_out_dir, ecs=GlobalConfig.get('ECS')))
-            self.train(train)
+                    image = self.BM3DELBP.describe_filter(image=self.dataset[index], test_image=False, train_out_dir=train_out_dir, test_out_dir=test_out_dir, ecs=GlobalConfig.get('ECS'))
+                    train_X.append(image.featurevector.astype(np.float64))
+                    train_y.append(image.label)
+            self.train(train_X, train_y)
+            del train_X
+            del train_y
 
             print("BM3DELBP Classifier trained on non-noisy images")
             print("Making noise predictions for test images")
@@ -370,12 +375,10 @@ class BM3DELBPPredictor(ImageClassifierInterface):
 
         return test_y_all, pred_y_all
 
-    def train(self, train: List[DatasetManager.Image]):
-        X_train = [img.featurevector for img in train]
+    def train(self, X_train: List, y_train: List[str]):
+        X_train = np.stack(X_train)
         # Convert List[narray] to ndarray
         X_train = np.stack(X_train, axis=0)
-        X_train = X_train.astype(np.float64)
-        y_train = [img.label for img in train]
         self.classifier = SVC(kernel='poly')
         self.classifier.fit(X_train, y_train)
 
