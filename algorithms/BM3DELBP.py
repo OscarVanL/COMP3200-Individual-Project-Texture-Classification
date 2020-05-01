@@ -87,8 +87,8 @@ class BM3DELBP(ImageProcessorInterface):
         if test_image and image.test_featurevector is None:
             # When storing test image generated featurevectors, store the featurevectors according to their noise type
             # prediction.
-            test_out_dir = os.path.join(test_out_dir, self.get_filter_name(image.noise_prediction))
-            out_file = os.path.join(test_out_dir, '{}.npy'.format(image.name))
+            test_out_dir_filtered = os.path.join(test_out_dir, self.get_filter_name(image.noise_prediction))
+            out_file = os.path.join(test_out_dir_filtered, '{}.npy'.format(image.name))
 
             # Read/generate featurevector for test image
             if GlobalConfig.get('debug'):
@@ -110,7 +110,7 @@ class BM3DELBP(ImageProcessorInterface):
 
                 # Make output folder if it doesn't exist
                 try:
-                    os.makedirs(test_out_dir)
+                    os.makedirs(test_out_dir_filtered)
                 except FileExistsError:
                     pass
 

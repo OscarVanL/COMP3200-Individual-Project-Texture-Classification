@@ -95,7 +95,6 @@ def get_riu2_mappings(p: int):
     return mappings
 
 
-#@nb.guvectorize([nb.void(nb.float32[:, :], nb.float32[:], nb.float32[:], nb.uint16, nb.float32[:])], '(x,y),(n),(n),()->(n)')
 @nb.jit('void(float32[:,:], float32[:], float32[:], uint16, float32[:])', nopython=True)
 def get_radial_means(image, x_pos, y_pos, patch_offset, means):
     """
