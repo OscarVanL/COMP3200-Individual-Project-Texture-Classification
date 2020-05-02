@@ -288,6 +288,11 @@ class BM3DELBPPredictor(ImageClassifierInterface):
         test_y_all = []
         pred_y_all = []
 
+        if GlobalConfig.get('rotate'):
+            maxtasks = 20
+        else:
+            maxtasks = None
+
         for train_index, test_index in self.cross_validator.split(self.dataset, self.dataset_y):
             print("Performing fold", fold)
             # Train NoiseClassifier on Train indexes only
@@ -302,7 +307,7 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             train_X = []
             train_y = []
             if GlobalConfig.get('multiprocess'):
-                with Pool(GlobalConfig.get('cpu_count'), maxtasksperchild=15) as pool_train:
+                with Pool(GlobalConfig.get('cpu_count'), maxtasksperchild=maxtasks) as pool_train:
                     # Generate featurevectors
                     for image in tqdm.tqdm(pool_train.istarmap(self.BM3DELBP.describe_filter,
                                                          zip([self.dataset[index] for index in train_index], repeat(False), repeat(train_out_dir), repeat(test_out_dir), repeat(GlobalConfig.get('ECS')))),
@@ -341,7 +346,7 @@ class BM3DELBPPredictor(ImageClassifierInterface):
             # Apply BM3DELBP filter & generate BM3DELBP descriptor
             if GlobalConfig.get('multiprocess'):
                 # Generate test_featurevectors using multiprocessing
-                with Pool(GlobalConfig.get('cpu_count'), maxtasksperchild=15) as pool_test:
+                with Pool(GlobalConfig.get('cpu_count'), maxtasksperchild=maxtasks) as pool_test:
                     for image in tqdm.tqdm(pool_test.istarmap(self.BM3DELBP.describe_filter,
                                                          zip([self.dataset[index] for index in test_index], repeat(True), repeat(train_out_dir), repeat(test_out_dir), repeat(GlobalConfig.get('ECS')))),
                                             total=len(test_index), desc='BM3DELBP Test Featurevectors'):

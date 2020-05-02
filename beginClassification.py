@@ -143,13 +143,13 @@ def main():
     except getopt.error as err:
         print(str(err))
 
-    if GlobalConfig.get('examples'):
-        write_examples()
-
     if GlobalConfig.get('ECS'):
         GlobalConfig.set('CWD', r'\\filestore.soton.ac.uk\users\ojvl1g17\mydocuments\COMP3200-Texture-Classification')
     else:
         GlobalConfig.set('CWD', os.getcwd())
+
+    if GlobalConfig.get('examples'):
+        write_examples()
 
     # Load configured Dataset
     if GlobalConfig.get('dataset') == 'kylberg':
@@ -226,14 +226,19 @@ def main():
         for index, img in enumerate(dataset):
             dataset[index] = (index, img)
 
+        if GlobalConfig.get('rotate'):
+            maxtask=20
+        else:
+            maxtasks=None
+
         if GlobalConfig.get('algorithm') == 'NoiseClassifier' or GlobalConfig.get('algorithm') == 'BM3DELBP':
-            with Pool(processes=GlobalConfig.get('cpu_count'), maxtasksperchild=15) as pool:
+            with Pool(processes=GlobalConfig.get('cpu_count'), maxtasksperchild=maxtasks) as pool:
                 # Generate image noise featurevectors
                 for index, image in tqdm.tqdm(pool.istarmap(describe_noise_pool, zip(dataset, repeat(noise_out_dir), repeat(test_noise_out_dir))),
                                        total=len(dataset), desc='Noise Featurevectors'):
                     dataset[index] = image
         else:
-            with Pool(processes=GlobalConfig.get('cpu_count'), maxtasksperchild=15) as pool:
+            with Pool(processes=GlobalConfig.get('cpu_count'), maxtasksperchild=maxtasks) as pool:
                 # Generate featurevectors
                 for index, image in tqdm.tqdm(pool.istarmap(describe_image_pool, zip(repeat(algorithm), dataset, repeat(train_out_dir), repeat(test_out_dir))),
                                        total=len(dataset), desc='Texture Featurevectors'):
@@ -300,12 +305,11 @@ def write_examples():
     """
     print("Generating algorithm example images")
     ex = GenerateExamples.GenerateExamples(
-        os.path.join(GlobalConfig.get('CWD'), 'data', 'kylberg', 'blanket1', 'blanket1-a-p001.png'))
-    # Todo: Re-enable other example generation
-    #ex.write_noise_examples()
-    #ex.write_RLBP_example()
-    #ex.write_MRLBP_example()
-    #ex.write_MRELBP_example()
+        os.path.join(GlobalConfig.get('CWD'), 'data', 'kylberg', 'grass1', 'grass1-a-p001.png'))
+    ex.write_noise_examples()
+    ex.write_RLBP_example()
+    ex.write_MRLBP_example()
+    ex.write_MRELBP_example()
     ex.write_BM3DELBP_example()
     print("Finished generating examples")
 

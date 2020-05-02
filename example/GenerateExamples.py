@@ -13,7 +13,11 @@ class GenerateExamples:
         """
         self.image_path = path
         image_name = path.split(os.sep)[-1].partition('.')[0]
-        image_uint8 = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        #image_uint8 = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+
+        image_uint8 = cv2.resize(cv2.imread(path, cv2.IMREAD_GRAYSCALE), (0, 0),
+                                fx=0.5,
+                                fy=0.5)
         # Convert from uint8 to float32 without normalizing to zero mean
         image_unscaled = ImageUtils.convert_uint8_image_float32(image_uint8)
         # Convert from uint8 to float32 while normalizing to zero mean
@@ -21,7 +25,9 @@ class GenerateExamples:
         image_gauss_10 = ImageUtils.add_gaussian_noise_skimage(image_scaled, 10)
         image_gauss_25 = ImageUtils.add_gaussian_noise_skimage(image_scaled, 25)
         image_speckle_002 = ImageUtils.add_speckle_noise_skimage(image_scaled, 0.02)
-        image_salt_pepper = ImageUtils.add_salt_pepper_noise_skimage(image_scaled, 0.02)
+        image_speckle_004 = ImageUtils.add_speckle_noise_skimage(image_scaled, 0.04)
+        image_salt_pepper_002 = ImageUtils.add_salt_pepper_noise_skimage(image_scaled, 0.02)
+        image_salt_pepper_004 = ImageUtils.add_salt_pepper_noise_skimage(image_scaled, 0.04)
         image_label = path.split(os.sep)[-1].partition('-')[0]
         # Generate different permutations of this sample image
         self.image_uint8 = DatasetManager.Image(image_uint8, image_name, image_label)
@@ -31,10 +37,14 @@ class GenerateExamples:
         self.image_gauss_10.test_noise='gaussian'; self.image_gauss_10.test_noise_val=10
         self.image_gauss_25 = DatasetManager.Image(image_gauss_25, image_name, image_label)
         self.image_gauss_25.test_noise = 'gaussian'; self.image_gauss_25.test_noise_val = 25
-        self.image_speckle = DatasetManager.Image(image_speckle_002, image_name, image_label)
-        self.image_speckle.test_noise = 'speckle'; self.image_speckle.test_noise_val = 0.02
-        self.image_salt_pepper_002 = DatasetManager.Image(image_salt_pepper, image_name, image_label)
+        self.image_speckle_002 = DatasetManager.Image(image_speckle_002, image_name, image_label)
+        self.image_speckle_002.test_noise = 'speckle'; self.image_speckle_002.test_noise_val = 0.02
+        self.image_speckle_004 = DatasetManager.Image(image_speckle_004, image_name, image_label)
+        self.image_speckle_004.test_noise = 'speckle'; self.image_speckle_004.test_noise_val = 0.02
+        self.image_salt_pepper_002 = DatasetManager.Image(image_salt_pepper_002, image_name, image_label)
         self.image_salt_pepper_002.test_noise = 'salt-pepper'; self.image_salt_pepper_002.noise_val = 0.02
+        self.image_salt_pepper_004 = DatasetManager.Image(image_salt_pepper_004, image_name, image_label)
+        self.image_salt_pepper_004.test_noise = 'salt-pepper'; self.image_salt_pepper_004.noise_val = 0.02
         self.path = os.path.join(GlobalConfig.get('CWD'), 'example')
 
         write_image(ImageUtils.convert_float32_image_uint8(self.image_unscaled.data), None, image_name + '-unedited.png')
@@ -46,14 +56,18 @@ class GenerateExamples:
         :return: None
         """
         print("Producing Noisy Image examples for:", self.image_scaled.name)
-        write_image(ImageUtils.convert_float32_image_uint8(self.image_gauss_10.test_data),
+        write_image(ImageUtils.convert_float32_image_uint8(self.image_gauss_10.data),
                          'Noise Applied', self.image_scaled.name + '-Gaussian-Sigma-10.png')
-        write_image(ImageUtils.convert_float32_image_uint8(self.image_gauss_25.test_data),
+        write_image(ImageUtils.convert_float32_image_uint8(self.image_gauss_25.data),
                          'Noise Applied', self.image_scaled.name + '-Gaussian-Sigma-25.png')
-        write_image(ImageUtils.convert_float32_image_uint8(self.image_speckle.test_data),
+        write_image(ImageUtils.convert_float32_image_uint8(self.image_speckle_002.data),
                          'Noise Applied', self.image_scaled.name + '-Speckle-Var-0.02.png')
-        write_image(ImageUtils.convert_float32_image_uint8(self.image_salt_pepper_002.test_data),
+        write_image(ImageUtils.convert_float32_image_uint8(self.image_speckle_004.data),
+                         'Noise Applied', self.image_scaled.name + '-Speckle-Var-0.04.png')
+        write_image(ImageUtils.convert_float32_image_uint8(self.image_salt_pepper_002.data),
                          'Noise Applied', self.image_scaled.name + '-Salt-Pepper-2%.png')
+        write_image(ImageUtils.convert_float32_image_uint8(self.image_salt_pepper_004.data),
+                         'Noise Applied', self.image_scaled.name + '-Salt-Pepper-4%.png')
         print("Finished producing Noisy Image examples")
 
     def write_RLBP_example(self):
@@ -77,7 +91,7 @@ class GenerateExamples:
     def write_BM3DELBP_example(self):
         print("Producing BM3DELBP examples for:", self.image_scaled.name)
         bm3delbp = BM3DELBP.BM3DELBP(save_img=True)
-        bm3delbp.describe(self.image_scaled, test_image=False)
+        bm3delbp.describe(self.image_scaled.data, test_image=False)
         bm3delbp_noise_classifier = NoiseClassifier.NoiseClassifier(save_img=True)
         print("No noise")
         bm3delbp_noise_classifier.describe(self.image_scaled, test_image=False)
@@ -86,7 +100,7 @@ class GenerateExamples:
         print("Gaussian Sigma 25")
         bm3delbp_noise_classifier.describe(self.image_gauss_25, test_image=False)
         print("Speckle")
-        bm3delbp_noise_classifier.describe(self.image_speckle, test_image=False)
+        bm3delbp_noise_classifier.describe(self.image_speckle_002, test_image=False)
         print("Salt & Pepper")
         bm3delbp_noise_classifier.describe(self.image_salt_pepper_002, test_image=False)
 
@@ -98,9 +112,13 @@ def write_image(image, folder, image_name):
         out_dir = os.path.join(os.getcwd(), 'example', folder)
 
     # If requested folder doesn't exist, make it
-    if not os.path.exists(out_dir):
+    try:
         os.makedirs(out_dir)
+    except FileExistsError:
+        pass
 
     out_file = os.path.join(out_dir, image_name)
+    
+    print("out_file: ", out_file)
 
     cv2.imwrite(out_file, image)

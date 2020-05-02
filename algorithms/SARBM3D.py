@@ -23,8 +23,10 @@ class SARBM3DFilter():
 
         # Make output folder if it doesn't exist
         self.OUT_DIR_PYTHON = os.path.join(self.SAMRBM3D_DIR, 'temp')
-        if not (os.path.exists( self.OUT_DIR_PYTHON)):
-            os.makedirs( self.OUT_DIR_PYTHON)
+        try:
+            os.makedirs(self.OUT_DIR_PYTHON)
+        except FileExistsError:
+            pass
 
     def sar_bm3d_filter(self, image, image_name, L=50):
         """
