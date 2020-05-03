@@ -120,7 +120,7 @@ class BM3DELBP(ImageProcessorInterface):
         if image.test_rotations is not None:
             if test_image:
                 for image_rotated in image.test_rotations:
-                    self.describe_filter(image_rotated, test_image, train_out_dir, test_out_dir)
+                    self.describe_filter(image_rotated, test_image, train_out_dir, test_out_dir, ecs)
 
         return image
 
