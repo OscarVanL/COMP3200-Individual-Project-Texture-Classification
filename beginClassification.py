@@ -227,7 +227,7 @@ def main():
             dataset[index] = (index, img)
 
         if GlobalConfig.get('rotate'):
-            maxtasks=20
+            maxtasks=50
         else:
             maxtasks=None
 

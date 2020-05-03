@@ -289,7 +289,7 @@ class BM3DELBPPredictor(ImageClassifierInterface):
         pred_y_all = []
 
         if GlobalConfig.get('rotate'):
-            maxtasks = 20
+            maxtasks = 50
         else:
             maxtasks = None
 
