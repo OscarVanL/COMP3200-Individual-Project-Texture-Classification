@@ -163,8 +163,8 @@ class BM3DELBP(ImageProcessorInterface):
             sar_bm3d = SARBM3D.SARBM3DFilter(ecs)
             # Connect to MATLAB Engine for SAR-BM3D filter
             sar_bm3d.connect_matlab()
-            # Apply SAR-BM3D filter
-            image_filtered = sar_bm3d.sar_bm3d_filter(image_data, image_name)
+            # Apply SAR-BM3D filter  # This requires images to be scaled in range [0, 255]
+            image_filtered = sar_bm3d.sar_bm3d_filter(ImageUtils.convert_float32_image_uint8(image_data), image_name, L=6)
             try:
                 # Disconnect from MATLAB Engine
                 sar_bm3d.disconnect_matlab()

@@ -141,18 +141,19 @@ class NoiseClassifierInterface:
                 self.dataset_X.append(image.no_noise_featurevector)
                 self.dataset_y.append('no-noise')
         if not GlobalConfig.get('rotate'):
-            self.dataset_X.append(image.gauss_10_noise_featurevector)
+            self.dataset_X.append(image.gauss_25_noise_featurevector)
             self.dataset_y.append('gaussian')
-            self.dataset_X.append(image.speckle_002_noise_featurevector)
+            self.dataset_X.append(image.speckle_004_noise_featurevector)
             self.dataset_y.append('speckle')
-            self.dataset_X.append(image.salt_pepper_002_noise_featurevector)
+            self.dataset_X.append(image.salt_pepper_004_noise_featurevector)
             self.dataset_y.append('salt-pepper')
-        self.dataset_X.append(image.gauss_25_noise_featurevector)
+        self.dataset_X.append(image.gauss_10_noise_featurevector)
         self.dataset_y.append('gaussian')
-        self.dataset_X.append(image.speckle_004_noise_featurevector)
+        self.dataset_X.append(image.speckle_002_noise_featurevector)
         self.dataset_y.append('speckle')
-        self.dataset_X.append(image.salt_pepper_004_noise_featurevector)
+        self.dataset_X.append(image.salt_pepper_002_noise_featurevector)
         self.dataset_y.append('salt-pepper')
+
 
         # Ensure noise featurevectors for rotations of images are added too
         if image.test_rotations is not None:

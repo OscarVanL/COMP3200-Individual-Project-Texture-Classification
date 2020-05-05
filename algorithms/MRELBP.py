@@ -119,8 +119,9 @@ class MedianRobustExtendedLBP(ImageProcessorInterface):
         if self.save_img:
             GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(image_padded), 'MRELBP', '{}-padded.png'.format(image.name))
             GenerateExamples.write_image(ImageUtils.convert_float32_image_uint8(image_filtered), 'MRELBP', '{}-median-filtered.png'.format(image.name))
-
-        describe_image = DatasetManager.Image(image_filtered, None, None)
+            describe_image = DatasetManager.Image(image_filtered, image.name, None)
+        else:
+            describe_image = DatasetManager.Image(image_filtered, None, None)
 
         # Return MRELBP descriptor
         return self.calculate_relbp(describe_image)

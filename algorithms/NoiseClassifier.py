@@ -176,13 +176,13 @@ class NoiseTypePredictor(NoiseClassifierInterface):
     def train(self):
         # Convert List[narray] to ndarray
         X = np.stack(self.dataset_X, axis=0)
-        self.classifier = SVC()
+        self.classifier = SVC(kernel='poly')
         self.classifier.fit(X, self.dataset_y)
 
     def train_on(self, X: List[np.ndarray], y: List[str]):
         # Convert List[narray] to ndarray
         X = np.stack(X, axis=0)
-        self.classifier = SVC()
+        self.classifier = SVC(kernel='poly')
         self.classifier.fit(X, y)
 
     def classify(self, X) -> List[str]:

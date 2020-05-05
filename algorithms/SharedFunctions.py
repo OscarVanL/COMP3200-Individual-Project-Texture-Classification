@@ -170,7 +170,7 @@ def bm3d_filter(image, sigma_psd=50/255):
 def homomorphic_filter(image, cutoff_freq=10, a=0.75, b=1.0):
     """
     Performs homomorphic filter on image using gaussian high-frequency filter
-    Implementation is adapted from https://github.com/glasgio/homomorphic-filter
+    Implementation is adapted from https://github.com/glasgio/homomorphic-filter to be optimized with Numba
     :param image: uint8 ndarray to perform homomorphic filter on
     :param cutoff_freq: Cutoff frequency for Gaussian filter
     :param a, b: Floats to use on emphasis filter: H = a + b*H. Eg: a=0.5, b=1.5

@@ -1,7 +1,7 @@
 import os
 import cv2
 from data import ImageUtils, DatasetManager
-from algorithms import RLBP, MRELBP, BM3DELBP, NoiseClassifier
+from algorithms import RLBP, MRELBP, BM3DELBP, NoiseClassifier, SARBM3D
 from config import GlobalConfig
 
 
@@ -40,11 +40,11 @@ class GenerateExamples:
         self.image_speckle_002 = DatasetManager.Image(image_speckle_002, image_name, image_label)
         self.image_speckle_002.test_noise = 'speckle'; self.image_speckle_002.test_noise_val = 0.02
         self.image_speckle_004 = DatasetManager.Image(image_speckle_004, image_name, image_label)
-        self.image_speckle_004.test_noise = 'speckle'; self.image_speckle_004.test_noise_val = 0.02
+        self.image_speckle_004.test_noise = 'speckle'; self.image_speckle_004.test_noise_val = 0.04
         self.image_salt_pepper_002 = DatasetManager.Image(image_salt_pepper_002, image_name, image_label)
         self.image_salt_pepper_002.test_noise = 'salt-pepper'; self.image_salt_pepper_002.noise_val = 0.02
         self.image_salt_pepper_004 = DatasetManager.Image(image_salt_pepper_004, image_name, image_label)
-        self.image_salt_pepper_004.test_noise = 'salt-pepper'; self.image_salt_pepper_004.noise_val = 0.02
+        self.image_salt_pepper_004.test_noise = 'salt-pepper'; self.image_salt_pepper_004.noise_val = 0.04
         self.path = os.path.join(GlobalConfig.get('CWD'), 'example')
 
         write_image(ImageUtils.convert_float32_image_uint8(self.image_unscaled.data), None, image_name + '-unedited.png')
@@ -99,10 +99,25 @@ class GenerateExamples:
         bm3delbp_noise_classifier.describe(self.image_gauss_10, test_image=False)
         print("Gaussian Sigma 25")
         bm3delbp_noise_classifier.describe(self.image_gauss_25, test_image=False)
-        print("Speckle")
+        print("Speckle 0.02")
         bm3delbp_noise_classifier.describe(self.image_speckle_002, test_image=False)
-        print("Salt & Pepper")
+        print("Speckle 0.02")
+        bm3delbp_noise_classifier.describe(self.image_speckle_004, test_image=False)
+        print("Salt & Pepper 2%")
         bm3delbp_noise_classifier.describe(self.image_salt_pepper_002, test_image=False)
+        print("Salt & Pepper 4%")
+        bm3delbp_noise_classifier.describe(self.image_salt_pepper_004, test_image=False)
+        # Also demonstrate SAR-BM3D filter for speckle noise
+        print("SAR-BM3D Example")
+        sarbm3d = SARBM3D.SARBM3DFilter(ecs=False)
+        sarbm3d.connect_matlab()
+        sarbm3d_filtered_002 = sarbm3d.sar_bm3d_filter(ImageUtils.convert_float32_image_uint8(self.image_speckle_002.data), self.image_speckle_002.name, L=4)
+        sarbm3d_filtered_004 = sarbm3d.sar_bm3d_filter(ImageUtils.convert_float32_image_uint8(self.image_speckle_004.data), self.image_speckle_004.name, L=4)
+        sarbm3d.disconnect_matlab()
+        write_image(ImageUtils.convert_float32_image_uint8(sarbm3d_filtered_002), os.path.join('BM3DELBP', 'NoiseFilters'),
+                    self.image_speckle_002.name + '-Speckle-Var-0.02-SARBM3D-Filtered.png')
+        write_image(ImageUtils.convert_float32_image_uint8(sarbm3d_filtered_004), os.path.join('BM3DELBP', 'NoiseFilters'),
+                    self.image_speckle_004.name + '-Speckle-Var-0.04-SARBM3D-Filtered.png')
 
 
 def write_image(image, folder, image_name):

@@ -62,7 +62,13 @@ def pretty_print_conf_matrix(y_true, y_pred,
     plt.show(block=False)
 
     if out_dir is not None:
-        out_file = os.path.join(out_dir, 'Confusion Matrix{}.png'.format(describe_test_setup()))
+        if GlobalConfig.get('algorithm') == 'MRLBP':
+            if GlobalConfig.get('mrlbp_classifier') == 'knn':
+                out_file = os.path.join(out_dir, 'Confusion Matrix{} - KNN.png'.format(describe_test_setup()))
+            else:
+                out_file = os.path.join(out_dir, 'Confusion Matrix{} - SVM.png'.format(describe_test_setup()))
+        else:
+            out_file = os.path.join(out_dir, 'Confusion Matrix{}.png'.format(describe_test_setup()))
         fig.savefig(out_file, dpi=300)
 
 
@@ -87,7 +93,14 @@ def make_classification_report(y_true, y_pred, classes, out_dir):
     pandas_weighted_avg.rename(columns={'support': 'N Predictions'}, inplace=True)
     pandas_accuracy = pd.DataFrame({'': rpt_accuracy}, index=['overall accuracy'])
 
-    out_file = os.path.join(out_dir, 'Classification Report{}.csv'.format(describe_test_setup()))
+    if GlobalConfig.get('algorithm') == 'MRLBP':
+        if GlobalConfig.get('mrlbp_classifier') == 'knn':
+            out_file = os.path.join(out_dir, 'Classification Report{} - KNN.csv'.format(describe_test_setup()))
+        else:
+            out_file = os.path.join(out_dir, 'Classification Report{} - SVM.csv'.format(describe_test_setup()))
+    else:
+        out_file = os.path.join(out_dir, 'Classification Report{}.csv'.format(describe_test_setup()))
+
     pandas_rpt.to_csv(out_file)
     pandas_macro_avg.to_csv(out_file, mode='a', header=True)
     pandas_weighted_avg.to_csv(out_file, mode='a', header=True)

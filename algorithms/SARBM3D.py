@@ -47,10 +47,11 @@ class SARBM3DFilter():
         savemat(out_file_python, {'image_data': image})  # Encode the numpy ndarray as a MATLAB .mat file
         FILTERED_IMAGE = self.eng.SARBM3D_Python_Helper(out_file_matlab, L)
         FILTERED_IMAGE = np.array(FILTERED_IMAGE._data)  # Convert from mlarray.double into numpy ndarray
+        # Rescale back to [-1, 1]
         FILTERED_IMAGE = FILTERED_IMAGE.astype(np.float32)  # Convert back to float32
         FILTERED_IMAGE = FILTERED_IMAGE.reshape((width, height), order='F')  # Reshape into original width and height
-        # Rescale back to [-1, 1]
-        FILTERED_IMAGE = cv2.normalize(FILTERED_IMAGE, None, alpha=-1, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+        FILTERED_IMAGE = cv2.normalize(FILTERED_IMAGE, None, alpha=-1, beta=1, norm_type=cv2.NORM_MINMAX,
+                                       dtype=cv2.CV_32F)
         os.remove(out_file_python)  # Delete the .mat file
         return FILTERED_IMAGE
 
