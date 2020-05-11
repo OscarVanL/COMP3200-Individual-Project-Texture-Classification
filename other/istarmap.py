@@ -1,6 +1,6 @@
 """
 This is a helper function allowing for TQDM progress bars to be displayed for Multiprocessing.Pool starmap() processes
-It is used to provide aesthetic/visual feedback for multithreaded processes.
+It is used to provide visual feedback for progress of multithreaded processes.
 Taken from https://stackoverflow.com/a/57364423
 """
 import multiprocessing.pool as mpp

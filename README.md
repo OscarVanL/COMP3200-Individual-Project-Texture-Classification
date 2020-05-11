@@ -1,13 +1,14 @@
 # COMP3200-Independent-Project
 Source code for experiments for Individual Project Dissertation.
 
-This project seeks to evaluate the performance of a number of texture classification algorithms, RLBP (Robust Local Binary Patterns), MRLBP (Multiresolution Local Binary Patterns), MRELBP (Median Robust Extended Local Binary Patterns) and BM3DELBP.
+This project seeks to evaluate the performance of a number of texture classification algorithms, RLBP (Robust Local Binary Patterns), MRLBP (Multiresolution Local Binary Patterns), MRELBP (Median Robust Extended Local Binary Patterns) and BM3DELBP (Block Matching and 3D filtering Extended Local Binary Pattern).
 
 These algorithms take a dataset with a series of classes of textures, then attempt classify unseen textures into these texture classes.
 
-The project tests classification accuracy when trained on ordinary textures and tested on textures with a variety of transformations including a different resolution (scale), various types of noise (gaussian, salt & pepper and speckle) and different rotations. 
+The project tests classification accuracy when trained on ordinary textures and tested on textures with a variety of transformations including a different resolution (scale), various types of noise (gaussian, salt & pepper and speckle) and different rotations, which can be configured by CLI arguments. 
 
-This allows us to test for transformational invariance.
+This allows us to test algorithms for invariance to different transformations.
+
 
 ### Installation:
 
@@ -54,15 +55,25 @@ Run beginClassification.py with the desired arguments.
 
 `-S` or `--test-scale` : Amount to rescale the testing images. This is used for the scale invariance test
 
+`-k` or `--folds` : Number of cross folds to complete
+
 `-r` or `--rotations` : Whether to rotate ecah image_scaled in the dataset 12 times
 
 `-n` or `--noise` : Which type of noise to apply ('gaussian', 'speckle', 'salt-pepper')
 
-`-i` or `--intensity` : How much noise to apply (Sigma / Variance / Ratio)
+`-i` or `--noise-intensity` : How much noise to apply (Sigma / Variance / Ratio)
 
 `-m` or `--multiprocess` : Whether to use multi process featurevector generation
 
 `-e` or `--example` : Generate example images used in dissertation report
+
+`--data-ratio` : Ratio of the dataset to load (eg: 0.5 will only load 50% of the dataset's textures per class)
+
+`--mrlbp-classifier` : Which classifier to use for MRLBP ('knn' or 'svm')
+
+`--noise-train` : Apply noise to the training images too
+
+`--ecs` : If running on an ECS Labs machine, loads the dataset and SAR-BM3D from C:\Local instead of CWD.
 
 `--debug` : Whether to run in debug mode (uses a reduced dataset to speed up execution, prints more stuff)
 
