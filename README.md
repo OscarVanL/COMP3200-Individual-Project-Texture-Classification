@@ -1,4 +1,4 @@
-# COMP3200-Independent-Project
+# COMP3200-Independent-Project-Texture-Classification
 Source code for experiments for Individual Project Dissertation.
 
 This project seeks to evaluate the performance of a number of texture classification algorithms, RLBP (Robust Local Binary Patterns), MRLBP (Multiresolution Local Binary Patterns), MRELBP (Median Robust Extended Local Binary Patterns) and BM3DELBP (Block Matching and 3D filtering Extended Local Binary Pattern).
